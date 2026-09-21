@@ -226,7 +226,8 @@ dialog::backdrop { background: rgba(17, 24, 39, .58); backdrop-filter: blur(4px)
 .code-panel code { display: block; min-height: 1.65em; font: inherit; white-space: pre; }
 .dialog-outcome { margin-top: 22px; padding: 22px; border-radius: 14px; background: var(--accent-soft); }
 .dialog-outcome span { color: var(--accent); font-size: .72rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
-.dialog-outcome p { margin: 8px 0 0; }
+.dialog-outcome ul { display: grid; gap: 7px; margin: 10px 0 0; padding-left: 20px; }
+.dialog-outcome li { padding-left: 3px; }
 
 footer { display: flex; justify-content: space-between; padding: 28px 0 42px; border-top: 1px solid var(--line); color: var(--muted); font-size: .8rem; }
 

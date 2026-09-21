@@ -1,113 +1,113 @@
 const sessions = [
   {
     id: 1, title: ".NET ve Web API'ye Giriş", speaker: "Burak", dates: "20 Ekim 2026 · Salı", start: "2026-10-20", end: "2026-10-20", format: "Teori + kısa hands-on",
-    summary: ".NET platformunu tanıyıp sıfırdan çalışan ilk ASP.NET Core Web API projesini oluşturuyoruz.",
+    summary: ".NET platformunu ve modern Web API yaklaşımını tanımak; sıfırdan çalışan, HTTP üzerinden JSON sunan ilk ASP.NET Core API'sini oluşturmak.",
     topics: [
-      [".NET platformu", "Modern .NET, CLR, CTS ve çok platformlu çalışma"],
-      ["Web API ve REST", "HTTP metotları, kaynaklar ve stateless iletişim"],
-      ["HTTP sözleşmesi", "Durum kodları, JSON ve doğru yanıt tasarımı"],
-      ["İlk API", "Controller, model, routing ve Swagger"]
+      [".NET Platformu", "Açık kaynak, çok platformlu yapı ve kullanım alanları"],
+      ["Modern .NET Ekosistemi", ".NET Framework, modern .NET ve LTS sürümler"],
+      ["CLR ve CTS", "JIT, bellek yönetimi ve ortak tip sistemi"],
+      ["Web API ve REST", "HTTP iletişimi, stateless yaklaşım ve CRUD"]
     ],
-    outcome: "Çalışan bir API, Hello endpoint'leri ve bellekte CRUD yapan ProductsController."
+    outcomes: [".NET ekosistemini ve çalışma modelini açıklayabilmek", "Controller tabanlı bir ASP.NET Core Web API oluşturabilmek", "REST endpoint'lerini doğru HTTP metodu ve durum koduyla tasarlayabilmek", "Route, query string, model ve JSON yanıtlarını kullanabilmek", "Swagger üzerinden API'yi çalıştırıp test edebilmek"]
   },
   {
     id: 2, title: "ASP.NET Core Fundamentals", speaker: "Serkan", dates: "22 Ekim 2026 · Perşembe", start: "2026-10-22", end: "2026-10-22", format: "Teori + hands-on",
-    summary: "Basit API'yi katmanlı, test edilebilir ve yönetilebilir bir ASP.NET Core uygulamasına dönüştürüyoruz.",
+    summary: "İlk session'da oluşturulan API'yi Dependency Injection, service ve DTO katmanları, middleware ve yönetilebilir konfigürasyon kullanarak bakımı kolay bir yapıya dönüştürmek.",
     topics: [
-      ["Request lifecycle", "Kestrel, middleware, controller ve response akışı"],
+      ["ASP.NET Core Mimarisi", "Kestrel, Program.cs ve request-response akışı"],
       ["Dependency Injection", "Scoped, transient ve singleton yaşam süreleri"],
-      ["Katmanlı mimari", "Controller, service ve DTO sorumlulukları"],
-      ["Uygulama altyapısı", "Validation, Options Pattern, logging ve Swagger"]
+      ["Katmanlı Mimari", "Controller, service ve interface sorumlulukları"],
+      ["DTO ve Validation", "API sözleşmesi ve doğrulama kuralları"]
     ],
-    outcome: "Service ve DTO katmanları, merkezi middleware'ler ve strongly typed konfigürasyon."
+    outcomes: ["ASP.NET Core request yaşam döngüsünü açıklayabilmek", "DI yaşam süresini ihtiyaca göre seçebilmek", "Controller, service ve DTO sorumluluklarını ayırabilmek", "Merkezi middleware ve Options Pattern kullanabilmek", "Validation ve Swagger ile anlaşılır bir API sözleşmesi sunabilmek"]
   },
   {
-    id: 3, title: "ASP.NET Core Web API Basics", speaker: "Burak · Metin", dates: "27 Ekim & 3 Kasım 2026", start: "2026-10-27", end: "2026-11-03", format: "Teori + hands-on",
-    summary: "API'nin dış sözleşmesini daha güvenli, ölçeklenebilir ve anlaşılır hale getiriyoruz.",
+    id: 3, title: "ASP.NET Core Web API Basics", speaker: "Burak ve Metin (teori) · Burak (hands-on)", dates: "27 Ekim 2026 · teori · 3 Kasım 2026 · hands-on", start: "2026-10-27", end: "2026-11-03", format: "Teori + hands-on",
+    summary: "API'nin dış sözleşmesini routing, model binding, sayfalama, filtreleme, standart hata yanıtları ve zengin Swagger dokümantasyonuyla profesyonelleştirmek.",
     topics: [
-      ["Model binding", "Route, query, body ve header kaynakları"],
-      ["Routing", "Attribute route, named route ve constraint'ler"],
-      ["Listeleme", "Filtreleme, sıralama ve metadatalı sayfalama"],
-      ["API standardı", "Problem Details, XML comments ve Swagger"]
+      ["API Sözleşmesi", "Kaynak odaklı ve tutarlı endpoint tasarımı"],
+      ["Model Binding Kaynakları", "Route, query, body ve header kaynakları"],
+      ["Routing Kuralları", "Attribute route, named route ve constraint'ler"],
+      ["Filtreleme, Sıralama ve Sayfalama", "Güvenli, metadatalı listeleme"]
     ],
-    outcome: "Sayfalanabilir Products API, route doğrulama ve standart Problem Details yanıtları."
+    outcomes: ["Model binding kaynağını bilinçli seçebilmek", "Güvenli ve metadatalı sayfalama tasarlayabilmek", "Route constraint'leriyle geçersiz istekleri erken reddedebilmek", "Standart hata sözleşmesi sunabilmek", "Swagger'da endpoint ve yanıtları eksiksiz belgeleyebilmek"]
   },
   {
-    id: 4, title: "Data Management", speaker: "Cem", dates: "5 & 10 Kasım 2026", start: "2026-11-05", end: "2026-11-10", format: "Teori + hands-on",
-    summary: "Bellekteki veriyi EF Core ve SQLite ile kalıcı, sorgulanabilir bir veri katmanına taşıyoruz.",
+    id: 4, title: "Data Management ve EF Core", speaker: "Cem", dates: "5 Kasım 2026 · teori · 10 Kasım 2026 · hands-on", start: "2026-11-05", end: "2026-11-10", format: "Teori + hands-on",
+    summary: "Bellekte tutulan veriden kalıcı veritabanına geçmek; EF Core, Code First, LINQ ve Repository Pattern ile sürdürülebilir bir veri erişim katmanı kurmak.",
     topics: [
-      ["EF Core", "ORM, entity, DbContext ve DbSet"],
-      ["Code First", "Fluent API, migrations ve seed data"],
-      ["Veri sorgulama", "LINQ, loading stratejileri ve N+1"],
-      ["Repository", "Generic CRUD, özel sorgular ve soft delete"]
+      ["Veri Erişim Yaklaşımları", "ADO.NET, EF Core ve Dapper"],
+      ["ORM ve Entity Tasarımı", "Entity ilişkileri ve navigation property'leri"],
+      ["DbContext ve DbSet", "Change tracking ve SaveChanges akışı"],
+      ["Code First ve Migrations", "Şema versiyonlama, Fluent API ve seed data"]
     ],
-    outcome: "SQLite veritabanı, repository katmanı, migration ve kalıcı Product CRUD akışı."
+    outcomes: ["EF Core entity ve ilişki modelleyebilmek", "DbContext ve migration yaşam döngüsünü yönetebilmek", "LINQ ile verimli sorgular oluşturabilmek", "Repository Pattern ile veri erişimini soyutlayabilmek", "Soft delete ve global query filter uygulayabilmek"]
   },
   {
-    id: 5, title: "Security & Identity", speaker: "Mustafa", dates: "12 & 17 Kasım 2026", start: "2026-11-12", end: "2026-11-17", format: "Teori + hands-on",
-    summary: "Kullanıcı kimliğini güvenli biçimde doğrulayan ve yetkiyi role göre yöneten altyapıyı kuruyoruz.",
+    id: 5, title: "ASP.NET Core Security ve Identity", speaker: "Mustafa", dates: "12 Kasım 2026 · teori · 17 Kasım 2026 · hands-on", start: "2026-11-12", end: "2026-11-17", format: "Teori + hands-on",
+    summary: "API'ye güvenli kullanıcı kaydı, giriş ve yetkilendirme altyapısı kazandırmak; JWT, claim, rol ve güvenli şifre saklama prensiplerini uygulamak.",
     topics: [
-      ["Kimlik ve yetki", "Authentication ile authorization ayrımı"],
-      ["JWT", "Claim, signature, issuer, audience ve expiration"],
-      ["Şifre güvenliği", "BCrypt, hashing ve salting"],
-      ["API koruması", "Bearer authentication ve role-based authorization"]
+      ["API Güvenliğinin Temelleri", "Authentication ve authorization ayrımı"],
+      ["JWT Yapısı", "Header, payload, signature ve claim'ler"],
+      ["Token Doğrulama", "İmza, süre, issuer ve audience kontrolü"],
+      ["Kullanıcı Yönetimi", "Kayıt, giriş, roller ve benzersizlik"]
     ],
-    outcome: "Güvenli kullanıcı kaydı/girişi, JWT üretimi ve korumalı endpoint altyapısı."
+    outcomes: ["Authentication ve authorization farkını açıklayabilmek", "JWT üretip güvenli biçimde doğrulayabilmek", "Şifreleri BCrypt ile hashleyebilmek", "Rol ve claim tabanlı erişim kontrolü kurabilmek", "Güvenlik ayarlarını konfigürasyon üzerinden yönetebilmek"]
   },
   {
-    id: 6, title: "Transactions & Error Handling", speaker: "Gözde", dates: "19 & 24 Kasım 2026", start: "2026-11-19", end: "2026-11-24", format: "Teori + hands-on",
-    summary: "Çok adımlı işlerde veri bütünlüğünü ve tüm API boyunca tutarlı hata davranışını güvence altına alıyoruz.",
+    id: 6, title: "Transactions ve Error Handling", speaker: "Gözde", dates: "19 Kasım 2026 · teori · 24 Kasım 2026 · hands-on", start: "2026-11-19", end: "2026-11-24", format: "Teori + hands-on",
+    summary: "Çok adımlı işlemlerde veri bütünlüğünü korumak; transaction, Unit of Work ve merkezi exception handling ile güvenilir bir API akışı oluşturmak.",
     topics: [
-      ["Transactions", "Commit, rollback ve all-or-nothing"],
-      ["ACID", "Tutarlılık, izolasyon ve kalıcılık"],
-      ["Unit of Work", "Repository işlemlerini tek sınırda toplama"],
-      ["Error handling", "Custom exception ve merkezi HTTP eşlemesi"]
+      ["Transaction Temelleri", "Commit, rollback ve all-or-nothing"],
+      ["ACID Prensipleri", "Atomicity, consistency, isolation ve durability"],
+      ["Isolation Seviyeleri", "Tutarlılık ve performans dengesi"],
+      ["Unit of Work Pattern", "Repository işlemlerini tek sınırda toplama"]
     ],
-    outcome: "Transaction güvenli banka transferi, Unit of Work ve global exception middleware."
+    outcomes: ["ACID ve transaction sınırlarını açıklayabilmek", "EF Core transaction'larında commit ve rollback yönetebilmek", "Unit of Work Pattern uygulayabilmek", "Domain hatalarını anlamlı exception tipleriyle ifade edebilmek", "Merkezi ve güvenli API hata yanıtları üretebilmek"]
   },
   {
-    id: 7, title: "Asynchronous Programming", speaker: "Serkan", dates: "26 Kasım & 1 Aralık 2026", start: "2026-11-26", end: "2026-12-01", format: "Teori + hands-on",
-    summary: "I/O beklemelerini bloklamadan yöneten ve yoğun trafikte ölçeklenebilen API akışına geçiyoruz.",
+    id: 7, title: "Asynchronous Programming", speaker: "Serkan", dates: "26 Kasım 2026 · teori · 1 Aralık 2026 · hands-on", start: "2026-11-26", end: "2026-12-01", format: "Teori + hands-on",
+    summary: "async/await, Task kompozisyonu ve iptal mekanizmalarını öğrenmek; API'nin I/O beklerken thread tüketmeyen, uçtan uca asenkron bir yapıda çalışmasını sağlamak.",
     topics: [
-      ["Async model", "Senkron/asenkron farkı, Task ve Thread"],
-      ["async / await", "Task dönüşleri ve async all the way"],
-      ["Task composition", "WhenAll, WhenAny ve paralel işlemler"],
-      ["İptal", "CancellationToken ve async hata davranışı"]
+      ["Senkron ve Asenkron Çalışma", "Bloklayan ve bloklamayan bekleme"],
+      ["Task ve Thread", "İş soyutlaması ve Thread Pool"],
+      ["async ve await", "Task dönüşleri ve async all the way"],
+      ["Kaçınılması Gereken Hatalar", ".Result, .Wait() ve async void"]
     ],
-    outcome: "Async controller ve servisler, paralel demo akışları, Auth ve Bank endpoint'leri."
+    outcomes: ["Senkron ve asenkron çalışma farkını açıklayabilmek", "async, await, Task ve Task<T> kullanabilmek", "Bağımsız işleri WhenAll ile paralel yürütebilmek", "İşlemleri CancellationToken ile iptal edebilmek", "API katmanlarını uçtan uca asenkron tasarlayabilmek"]
   },
   {
-    id: 8, title: "Unit & Integration Testing", speaker: "Mennan", dates: "3 Aralık 2026 · Perşembe", start: "2026-12-03", end: "2026-12-03", format: "Teori + hands-on + AI",
-    summary: "Kodun davranışını hızlı unit testler ve gerçek pipeline integration testleriyle güvenceye alıyoruz.",
+    id: 8, title: "Unit ve Integration Testing", speaker: "Mennan", dates: "3 Aralık 2026 · Perşembe", start: "2026-12-03", end: "2026-12-03", format: "Teori + hands-on + kısa AI oturumu",
+    summary: "Unit ve integration testlerle güvenli değişiklik yapabilmek; xUnit, Moq ve WebApplicationFactory kullanarak servis, controller ve gerçek HTTP pipeline davranışlarını doğrulamak.",
     topics: [
-      ["Test stratejisi", "Unit ve integration test sınırları"],
-      ["xUnit", "Fact, Theory ve Arrange-Act-Assert"],
+      ["Neden Test Yazarız?", "Erken hata yakalama ve hızlı geri bildirim"],
+      ["Test Seviyeleri", "Unit ve integration test sınırları"],
+      ["xUnit Temelleri", "Fact, Theory ve Arrange-Act-Assert"],
       ["Mocking", "Moq ile bağımlılık izolasyonu"],
-      ["API testleri", "WebApplicationFactory ve InMemory DB"]
     ],
-    outcome: "Service/controller unit testleri, HTTP integration testleri ve çalışan test projesi."
+    outcomes: ["Unit ve integration test kapsamlarını ayırabilmek", "xUnit ile okunabilir testler yazabilmek", "Moq kullanarak bağımlılıkları izole edebilmek", "WebApplicationFactory ile API pipeline'ını test edebilmek", "AI tarafından önerilen testleri eleştirel biçimde doğrulayabilmek"]
   },
   {
     id: 9, title: "Monitoring & Logging", speaker: "Hakan", dates: "8 Aralık 2026 · Salı", start: "2026-12-08", end: "2026-12-08", format: "Teori + hands-on",
-    summary: "Üretim davranışını log, metric ve trace üzerinden görünür ve teşhis edilebilir hale getiriyoruz.",
+    summary: "Üretimde çalışan API'nin davranışını görünür kılmak; log, metric ve trace verilerini bir araya getirerek sorunları hızlı ve bağlamıyla teşhis edebilmek.",
     topics: [
-      ["Observability", "Logs, metrics ve traces"],
-      ["Serilog", "Structured logging, sink ve enrichment"],
-      ["OpenTelemetry", "Instrumentation ve Prometheus metrics"],
-      ["İstek takibi", "Correlation ID, health ve diagnostics"]
+      ["Observability İhtiyacı", "Üretim sorunlarını ölçmek ve teşhis etmek"],
+      ["Observability'nin Üç Ayağı", "Logs, metrics ve traces"],
+      ["Structured Logging", "Serilog, sink ve enrichment"],
+      ["Log Seviyeleri", "Trace'ten Fatal'a olay önemi"]
     ],
-    outcome: "Structured loglar, correlation middleware, `/metrics` ve diagnostics endpoint'i."
+    outcomes: ["Log, metric ve trace arasındaki farkı açıklayabilmek", "Serilog ile sorgulanabilir structured log üretebilmek", "OpenTelemetry ile metric ve trace toplayabilmek", "Correlation ID ile tek isteği uçtan uca izleyebilmek", "Health ve diagnostics endpoint'leri tasarlayabilmek"]
   },
   {
-    id: 10, title: "Application Deployment", speaker: "Mennan · Burak", dates: "10 & 15 Aralık 2026", start: "2026-12-10", end: "2026-12-15", format: "Teori + hands-on",
-    summary: "API'yi container olarak paketliyor ve otomatik kalite kapılarıyla yayına hazır hale getiriyoruz.",
+    id: 10, title: "Application Deployment", speaker: "Mennan ve Burak", dates: "10 Aralık 2026 · teori · 15 Aralık 2026 · hands-on", start: "2026-12-10", end: "2026-12-15", format: "Teori + hands-on",
+    summary: "Geliştirilen API'yi tekrarlanabilir ve gözlemlenebilir biçimde çalıştırmak; Docker, Compose ve CI/CD ile geliştirmeden yayına uzanan teslim sürecini tamamlamak.",
     topics: [
-      ["Hosting", "Kestrel, reverse proxy ve ortamlar"],
-      ["Docker", "Image, container ve multi-stage build"],
-      ["Compose", "API, Seq, network ve kalıcı volume"],
-      ["CI/CD", "Restore, build, test ve deployment stratejileri"]
+      ["Deployment Ortamları", "Development, staging ve production"],
+      ["Web Sunucuları ve Hosting", "Kestrel, reverse proxy ve IIS"],
+      ["Performans ve Güvenilirlik", "Health check, yük dengeleme ve scaling"],
+      ["Docker", "Image, container ve multi-stage build"]
     ],
-    outcome: "Docker image, API + Seq compose ortamı ve otomatik build/test pipeline'ı."
+    outcomes: ["Deployment ortamlarını ve hosting seçeneklerini ayırabilmek", "Multi-stage Docker image oluşturabilmek", "Compose ile çoklu servis çalıştırabilmek", "CI/CD pipeline'ında build ve test kapıları kurabilmek", "Yayın ve ölçeklendirme stratejilerini ihtiyaca göre seçebilmek"]
   }
 ];
 
@@ -311,7 +311,8 @@ const openSession = session => {
     .map(item => `<li><span>${item}</span></li>`).join("");
   session.editableCode = readCodeSteps(session);
   renderCodeSteps(session);
-  document.querySelector("#dialog-outcome").textContent = session.outcome;
+  document.querySelector("#dialog-outcome").innerHTML = session.outcomes
+    .map(outcome => `<li>${outcome}</li>`).join("");
   document.querySelector("#add-code-step").onclick = () => {
     session.editableCode.push(normalizeCodeStep({}));
     storeCodeSteps(session);
