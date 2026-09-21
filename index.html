@@ -3,11 +3,11 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content=".NET Bootcamp session akışı, takvimi ve konu başlıkları.">
+  <meta name="description" content=".NET Bootcamp oturum akışı, takvimi ve konu başlıkları.">
   <meta name="theme-color" content="#111827">
-  <title>.NET Bootcamp · Session Flow</title>
+  <title>.NET Bootcamp · Oturum Akışı</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css?v=10">
+  <link rel="stylesheet" href="styles.css?v=11">
 </head>
 <body>
   <header class="site-header">
@@ -16,7 +16,7 @@
       <span>.NET Bootcamp</span>
     </a>
     <div class="header-actions">
-      <a class="presentation-link" href="https://commencis.sharepoint.com/:f:/r/sites/backend/Backend%20Camp/DotNet/Presentation?d=w472189bc7c0a4778bf5f2cc9aa7c9c27&amp;csf=1&amp;web=1&amp;e=JsZTcb" target="_blank" rel="noopener noreferrer">Presentation <span aria-hidden="true">↗</span></a>
+      <a class="presentation-link" href="https://commencis.sharepoint.com/:f:/r/sites/backend/Backend%20Camp/DotNet/Presentation?d=w472189bc7c0a4778bf5f2cc9aa7c9c27&amp;csf=1&amp;web=1&amp;e=JsZTcb" target="_blank" rel="noopener noreferrer">Sunum <span aria-hidden="true">↗</span></a>
       <nav aria-label="Sayfa navigasyonu">
         <a href="#flow">Akış</a><a href="#principles">Yaklaşım</a><a href="#challenge">Challenge</a><a href="#quiz">Quiz</a>
       </nav>
@@ -26,13 +26,13 @@
   <main id="top">
     <section class="hero" aria-labelledby="hero-title">
       <div class="eyebrow">20 Ekim — 15 Aralık 2026</div>
-      <h1 id="hero-title">Bir API'nin fikirden<br><span>production'a yolculuğu.</span></h1>
-      <p class="hero-copy">Her session bir önceki branch'in çalışan çıktısını devralır. Eksik kalan noktayı belirler, yalnız ihtiyaç duyulan katmanı ekler ve API'yi bir sonraki seviyeye taşırız.</p>
+      <h1 id="hero-title">Bir API'nin fikirden<br><span>üretime yolculuğu.</span></h1>
+      <p class="hero-copy">Her oturumda bir önceki dalın çalışan çıktısından devam ederiz. Eksik noktaları bulur, gereken katmanı ekler ve API'yi adım adım geliştiririz.</p>
 
       <div class="current-session" aria-live="polite">
         <div>
           <span class="status-dot" aria-hidden="true"></span>
-          <span id="current-label" class="current-label">Program yükleniyor</span>
+          <span id="current-label" class="current-label">Takvim yükleniyor</span>
         </div>
         <strong id="current-title">—</strong>
         <div class="current-meta">
@@ -44,8 +44,8 @@
 
       <div class="progress-block">
         <div class="progress-copy">
-          <span>Bootcamp ilerlemesi</span>
-          <strong id="progress-text">0 / 10 session</strong>
+          <span>İlerleme durumu</span>
+          <strong id="progress-text">0 / 10 oturum</strong>
         </div>
         <div class="progress-track" role="progressbar" aria-label="Bootcamp ilerlemesi" aria-valuemin="0" aria-valuemax="10" aria-valuenow="0">
           <span id="progress-bar"></span>
@@ -57,9 +57,9 @@
       <div class="section-heading">
         <div>
           <span class="eyebrow">Öğrenme rotası</span>
-          <h2 id="flow-title">Session akışı</h2>
+          <h2 id="flow-title">Oturum akışı</h2>
         </div>
-        <p>Her oturum bir öncekinin çıktısını devralır. Bir session seçerek konu akışını ve uygulama hedeflerini görebilirsin.</p>
+        <p>Her oturum bir öncekinin çıktısından devam eder. Bir oturum seçerek projeye neler ekleneceğini ve uygulama adımlarını görebilirsin.</p>
       </div>
       <div id="session-list" class="session-list"></div>
     </section>
@@ -70,9 +70,9 @@
         <h2 id="principles-title">Tek proje.<br>On anlamlı adım.</h2>
       </div>
       <div class="principle-grid">
-        <article><span>01</span><h3>Mevcut durumu oku</h3><p>Önceki session'ın ne ürettiğini ve yeni ihtiyaç karşısında nerede sınırlı kaldığını netleştiriyoruz.</p></article>
+        <article><span>01</span><h3>Mevcut durumu incele</h3><p>Önceki oturumda ne yaptığımızı ve yeni ihtiyaç karşısında nerede yetersiz kaldığımızı netleştiriyoruz.</p></article>
         <article><span>02</span><h3>Gerekli parçayı ekle</h3><p>Yeni kavramı bağımsız bir örnek yerine çalışan API'nin üzerine, gerçek ihtiyacı çözecek ölçüde ekliyoruz.</p></article>
-        <article><span>03</span><h3>Yeni referansı bırak</h3><p>Her `ref/sNN-*` branch'i bir sonraki session'ın başlangıç noktası olacak tamamlanmış proje durumudur.</p></article>
+        <article><span>03</span><h3>Yeni başlangıcı hazırla</h3><p>Her `ref/sNN-*` dalı, tamamlanan proje durumunu saklar ve sonraki oturumun başlangıç noktası olur.</p></article>
       </div>
     </section>
 
@@ -121,13 +121,13 @@
       <div id="dialog-meta" class="dialog-meta"></div>
       <p id="dialog-summary" class="dialog-summary"></p>
 
-      <section class="session-transition" aria-label="Session geçiş özeti">
+      <section class="session-transition" aria-label="Oturum geçiş özeti">
         <div class="transition-baseline">
           <span>Başlangıç noktası</span>
           <p id="dialog-baseline"></p>
         </div>
         <div class="transition-additions">
-          <span>Bu session'da neler eklenecek?</span>
+          <span>Bu oturumda neler ekleyeceğiz?</span>
           <ul id="dialog-additions"></ul>
         </div>
       </section>
@@ -136,7 +136,7 @@
         <div class="guide-heading">
           <span class="guide-kicker">01 · Neden?</span>
           <h3 id="theory-title">Eklemelerin gerekçesi</h3>
-          <p>Her yeni parçanın önceki session'daki hangi sınırı çözdüğünü bu sırayla ele al.</p>
+          <p>Her yeni parçanın önceki oturumdaki hangi sorunu çözdüğünü bu sırayla incele.</p>
         </div>
         <div id="dialog-topics" class="dialog-topics"></div>
       </section>
@@ -144,8 +144,8 @@
       <section class="guide-section" aria-labelledby="checklist-title">
         <div class="guide-heading">
           <span class="guide-kicker">02 · Nasıl?</span>
-          <h3 id="checklist-title">Önceki branch üzerine ekle</h3>
-          <p>Bir önceki session'ın branch'inden başlayıp yeni yapıyı adım adım oluştur.</p>
+          <h3 id="checklist-title">Önceki dalın üzerine ekle</h3>
+          <p>Bir önceki oturumun dalından başlayıp yeni yapıyı adım adım oluştur.</p>
         </div>
         <ol id="dialog-checklist" class="implementation-list"></ol>
       </section>
@@ -154,7 +154,7 @@
         <div class="guide-heading">
           <span class="guide-kicker" lang="en">03 · Coding</span>
           <h3 id="coding-title">Kodlama adımları</h3>
-          <p>Örnekleri önceki branch'in üzerine uygula; adımları ihtiyacına göre düzenle, ekle, sil veya sırala.</p>
+          <p>Örnekleri önceki dalın üzerine uygula; adımları ihtiyacına göre düzenle, ekle, sil veya sırala.</p>
         </div>
         <div class="code-section-actions">
           <button id="add-code-step" class="manage-button primary" type="button">+ Yeni kodlama adımı</button>
@@ -164,7 +164,7 @@
       </section>
 
       <div class="dialog-outcome">
-        <span>Bu session sonunda</span>
+        <span>Bu oturumun sonunda</span>
         <ul id="dialog-outcome"></ul>
       </div>
     </div>
@@ -175,7 +175,7 @@
     <span>Öğren, uygula, ilerlet.</span>
   </footer>
 
-  <script src="session-details.js?v=10"></script>
-  <script src="app.js?v=10"></script>
+  <script src="session-details.js?v=11"></script>
+  <script src="app.js?v=11"></script>
 </body>
 </html>
