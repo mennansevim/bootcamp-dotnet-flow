@@ -111,6 +111,8 @@ const sessions = [
   }
 ];
 
+sessions.forEach(session => Object.assign(session, window.sessionDetails?.[session.id] ?? {}));
+
 const localDay = (value = new Date()) => Date.UTC(value.getFullYear(), value.getMonth(), value.getDate());
 const asDay = value => Date.parse(`${value}T00:00:00Z`);
 const today = localDay();
@@ -153,17 +155,57 @@ sessions.forEach(session => {
 });
 
 const dialog = document.querySelector("#session-dialog");
+const escapeHtml = value => value.replace(/[&<>"]/g, character => ({
+  "&": "&amp;",
+  "<": "&lt;",
+  ">": "&gt;",
+  '"': "&quot;"
+})[character]);
+
 const openSession = session => {
   document.querySelector("#dialog-number").textContent = `Session ${String(session.id).padStart(2, "0")}`;
   document.querySelector("#dialog-title").textContent = session.title;
   document.querySelector("#dialog-meta").innerHTML = `<span>${session.speaker}</span><span>${session.dates}</span><span>${session.format}</span>`;
   document.querySelector("#dialog-summary").textContent = session.summary;
-  document.querySelector("#dialog-topics").innerHTML = session.topics.map((topic, index) => `
+  document.querySelector("#dialog-topics").innerHTML = session.theory.map((topic, index) => `
     <article class="dialog-topic">
       <span>${String(index + 1).padStart(2, "0")}</span>
-      <div><h3>${topic[0]}</h3><p>${topic[1]}</p></div>
+      <div>
+        <h4>${topic.title}</h4>
+        <p>${topic.description}</p>
+        <ul>${topic.points.map(point => `<li>${point}</li>`).join("")}</ul>
+      </div>
     </article>`).join("");
+  document.querySelector("#dialog-checklist").innerHTML = session.checklist
+    .map(item => `<li><span>${item}</span></li>`).join("");
+  document.querySelector("#dialog-code").innerHTML = session.code.map((step, index) => `
+    <details class="code-step">
+      <summary>
+        <span class="code-step-number">${String(index + 1).padStart(2, "0")}</span>
+        <span class="code-step-copy">
+          <strong>${step.title}</strong>
+          <small>${step.file}</small>
+          <span>${step.why}</span>
+        </span>
+        <span class="code-toggle" aria-hidden="true">+</span>
+      </summary>
+      <div class="code-panel">
+        <div class="code-toolbar">
+          <span>${step.language}</span>
+          <button class="copy-button" type="button" data-code-index="${index}">Kopyala</button>
+        </div>
+        <pre><code class="language-${step.language}">${escapeHtml(step.code)}</code></pre>
+      </div>
+    </details>`).join("");
   document.querySelector("#dialog-outcome").textContent = session.outcome;
+  document.querySelectorAll(".copy-button").forEach(button => {
+    button.addEventListener("click", async () => {
+      const step = session.code[Number(button.dataset.codeIndex)];
+      await navigator.clipboard.writeText(step.code);
+      button.textContent = "Kopyalandı";
+      window.setTimeout(() => { button.textContent = "Kopyala"; }, 1400);
+    });
+  });
   dialog.showModal();
 };
 

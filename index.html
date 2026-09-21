@@ -83,12 +83,41 @@
       </div>
       <button id="dialog-close" class="icon-button" type="button" aria-label="Detayı kapat">×</button>
     </div>
-    <div id="dialog-meta" class="dialog-meta"></div>
-    <p id="dialog-summary" class="dialog-summary"></p>
-    <div id="dialog-topics" class="dialog-topics"></div>
-    <div class="dialog-outcome">
-      <span>Session çıktısı</span>
-      <p id="dialog-outcome"></p>
+    <div class="dialog-body">
+      <div id="dialog-meta" class="dialog-meta"></div>
+      <p id="dialog-summary" class="dialog-summary"></p>
+
+      <section class="guide-section" aria-labelledby="theory-title">
+        <div class="guide-heading">
+          <span class="guide-kicker">01 · Anlatım</span>
+          <h3 id="theory-title">Konu akışı</h3>
+          <p>Kavramlar sunum sırasında bu sırayla ele alınır.</p>
+        </div>
+        <div id="dialog-topics" class="dialog-topics"></div>
+      </section>
+
+      <section class="guide-section" aria-labelledby="checklist-title">
+        <div class="guide-heading">
+          <span class="guide-kicker">02 · Uygulama</span>
+          <h3 id="checklist-title">İlerleme sırası</h3>
+          <p>Branch'i yeniden üretirken hiçbir adımı atlamamak için sırayla ilerle.</p>
+        </div>
+        <ol id="dialog-checklist" class="implementation-list"></ol>
+      </section>
+
+      <section class="guide-section code-guide" aria-labelledby="coding-title">
+        <div class="guide-heading">
+          <span class="guide-kicker">03 · Coding</span>
+          <h3 id="coding-title">Kodlama adımları</h3>
+          <p>Dosya yolunu takip et; kodu aç, incele veya tek tıkla kopyala.</p>
+        </div>
+        <div id="dialog-code" class="code-steps"></div>
+      </section>
+
+      <div class="dialog-outcome">
+        <span>Session çıktısı</span>
+        <p id="dialog-outcome"></p>
+      </div>
     </div>
   </dialog>
 
@@ -97,6 +126,7 @@
     <span>Öğren, uygula, ilerlet.</span>
   </footer>
 
+  <script src="session-details.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
