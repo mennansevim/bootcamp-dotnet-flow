@@ -401,14 +401,19 @@ public interface IRepository<T> where T : class
     Task DeleteAsync(T entity);
     IQueryable<T> Query();
 }` },
-    { title: "Veritabanı ve repository'leri kaydet", why: "Scoped DbContext ve repository'ler, istek boyunca aynı veri oturumunu paylaşır.", file: "ECommerceApi/Program.cs", language: "csharp", code: String.raw`builder.Services.AddDbContext<BootcampDbContext>(options =>
+    { title: "Veritabanı ve repository'leri kaydet", why: "Scoped DbContext ve repository'ler istek boyunca aynı veri oturumunu paylaşır; bekleyen migration'lar başlangıçta uygulanır.", file: "ECommerceApi/Program.cs", language: "csharp", code: String.raw`builder.Services.AddDbContext<BootcampDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
-builder.Services.AddScoped<IProductRepository, ProductRepository>();` },
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
+
+using var scope = app.Services.CreateScope();
+var dbContext = scope.ServiceProvider.GetRequiredService<BootcampDbContext>();
+dbContext.Database.Migrate();` },
       { title: "Migration'ı üret ve uygula", why: "C# modeli SQLite şemasına dönüştürülür ve versiyonlanır.", file: "Terminal", language: "bash", code: String.raw`cd ECommerceApi
 dotnet ef migrations add InitialCreate
 dotnet ef database update
+dotnet ef migrations list
 dotnet run` }
     ]
   },
@@ -422,7 +427,7 @@ dotnet run` }
             { title: "Yetkilendirme", description: "Kimliği doğrulama tamamlandıktan sonra mevcut endpoint'lere Authorize ve rol kuralları eklenebilir. Swagger'a Bearer desteği ekleyerek korumalı akışı login'den endpoint'e kadar test ediyoruz.", points: ["`[Authorize]` ile korumalı kaynaklar", "Role-based authorization", "Swagger'dan Bearer token ile test"] },
             { title: "Güvenlik Tehditleri", description: "Yeni kimlik katmanı saldırı yüzeyini de büyütüyor. EF Core'un parametreli sorgularını, HTTPS'i ve secret'ların konfigürasyon dışında tutulmasını bütünsel savunmanın parçaları olarak konumluyoruz.", points: ["SQL injection'a karşı ORM ve parametreli sorgular", "XSS ve CSRF kavramları", "Secret'ların kaynak kod dışında tutulması"] }
     ],
-        checklist: ["JWT bearer ve BCrypt paketlerini ekle.", "Kullanıcı entity'sini, rolleri ve başlangıç admin hesabını tanımla.", "JWT ayarlarını konfigürasyona taşı.", "Claim içeren token üreten JwtService katmanını oluştur.", "BCrypt kullanan kayıt/giriş akışını AuthService içinde kur.", "Kimlik doğrulama ve yetkilendirme middleware'lerini bağla.", "Token üretme ve geçersiz token senaryolarını doğrula."],
+        checklist: ["JWT bearer ve BCrypt paketlerini ekle.", "Kullanıcı entity'sini, rolleri ve başlangıç admin hesabını tanımla.", "Users tablosu için AddSecurityIdentity migration'ını oluştur.", "JWT ayarlarını konfigürasyona taşı.", "Claim içeren token üreten JwtService katmanını oluştur.", "BCrypt kullanan kayıt/giriş akışını AuthService içinde kur.", "Kimlik doğrulama ve yetkilendirme middleware'lerini bağla.", "Token üretme ve geçersiz token senaryolarını doğrula."],
     code: [
       { title: "JWT ayar modelini oluştur", why: "Token üretme ve doğrulama parametreleri Options Pattern ile tek yerde yönetilir.", file: "ECommerceApi/Auth/JwtSettings.cs", language: "csharp", code: String.raw`namespace ECommerceApi.Auth;
 
@@ -502,6 +507,10 @@ builder.Services.AddAuthorization();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();` }
+    ,{ title: "Kullanıcı şemasını versiyonla", why: "S4 veritabanı veri kaybetmeden Users tablosu, benzersiz indeksler ve başlangıç admin hesabıyla genişletilir.", file: "Terminal", language: "bash", code: String.raw`cd ECommerceApi
+dotnet ef migrations add AddSecurityIdentity
+dotnet ef database update
+dotnet ef migrations list` }
     ]
   },
   6: {
@@ -514,7 +523,7 @@ app.MapControllers();` }
             { title: "Merkezi Hata Yönetimi", description: "S2'de eklediğimiz hata middleware'ini yeni iş alanı hata türlerini anlayacak şekilde genişletiyoruz. Her hata uygun HTTP koduna dönüşürken teknik çağrı izi yalnızca sunucu logunda kalıyor.", points: ["Hata türlerini HTTP durum kodlarına eşleme", "Tutarlı JSON hata sözleşmesi", "Teknik ayrıntıyı loglayıp istemciden gizleme"] },
             { title: "Asenkron Hata ve İptal Yönetimi", description: "Transaction akışı asenkron EF çağrıları kullandığı için hata ve iptal bilgisinin await zincirinde doğru taşınması gerekir. Rollback sonrasında throw ile özgün çağrı izini koruyor, uzun işlemleri iptale hazırlıyoruz.", points: ["`await` edilen Task'tan hata yayılımı", "`throw;` ile çağrı izini koruma", "`CancellationToken` ile uzun işlemi iptal etme"] }
     ],
-        checklist: ["Banka hesabı ve işlem kaydı entity'lerini oluştur.", "İş alanını ifade eden özel hata sınıflarını ekle.", "Transaction metotlarını sunan Unit of Work katmanını kur.", "Para transferini transaction içinde gerçekleştiren Bank servisini yaz.", "Hata durumunda rollback yap ve hatayı üst katmana ilet.", "Merkezi middleware'de hata türü → HTTP kodu eşlemesini yap.", "Başarılı, yetersiz bakiye ve bulunamayan hesap senaryolarını doğrula."],
+        checklist: ["Banka hesabı ve işlem kaydı entity'lerini oluştur.", "Banka şeması için AddBanking migration'ını oluştur.", "İş alanını ifade eden özel hata sınıflarını ekle.", "Transaction metotlarını sunan Unit of Work katmanını kur.", "Para transferini transaction içinde gerçekleştiren Bank servisini yaz.", "Hata durumunda rollback yap ve hatayı üst katmana ilet.", "Merkezi middleware'de hata türü → HTTP kodu eşlemesini yap.", "Başarılı, yetersiz bakiye ve bulunamayan hesap senaryolarını doğrula."],
     code: [
     { title: "İş alanı hata türlerini tanımla", why: "Hata türü hem iş anlamını hem de üretilecek HTTP yanıtını belirler.", file: "ECommerceApi/Exceptions/CustomExceptions.cs", language: "csharp", code: String.raw`namespace ECommerceApi.Exceptions;
 
@@ -596,6 +605,10 @@ await context.Response.WriteAsJsonAsync(new
     message = statusCode == 500 ? "Beklenmeyen bir hata oluştu" : exception.Message,
     timestamp = DateTime.UtcNow
 });` }
+    ,{ title: "Banka şemasını versiyonla", why: "Hesap ve işlem tabloları mevcut ürün ve kullanıcı verileri korunarak eklenir.", file: "Terminal", language: "bash", code: String.raw`cd ECommerceApi
+dotnet ef migrations add AddBanking
+dotnet ef database update
+dotnet ef migrations list` }
     ]
   },
   7: {
