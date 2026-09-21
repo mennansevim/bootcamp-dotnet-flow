@@ -7,7 +7,7 @@
   <meta name="theme-color" content="#111827">
   <title>.NET Bootcamp · Session Flow</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css?v=9">
+  <link rel="stylesheet" href="styles.css?v=10">
 </head>
 <body>
   <header class="site-header">
@@ -27,7 +27,7 @@
     <section class="hero" aria-labelledby="hero-title">
       <div class="eyebrow">20 Ekim — 15 Aralık 2026</div>
       <h1 id="hero-title">Bir API'nin fikirden<br><span>production'a yolculuğu.</span></h1>
-      <p class="hero-copy">On session boyunca aynı e-ticaret API'sini adım adım geliştiriyor; her kavramı çalışan kodun üzerine inşa ediyoruz.</p>
+      <p class="hero-copy">Her session bir önceki branch'in çalışan çıktısını devralır. Eksik kalan noktayı belirler, yalnız ihtiyaç duyulan katmanı ekler ve API'yi bir sonraki seviyeye taşırız.</p>
 
       <div class="current-session" aria-live="polite">
         <div>
@@ -70,9 +70,9 @@
         <h2 id="principles-title">Tek proje.<br>On anlamlı adım.</h2>
       </div>
       <div class="principle-grid">
-        <article><span>01</span><h3>Önce kavram</h3><p>Her teknik kararın nedenini kısa ve gerçek hayat odaklı bir anlatımla kuruyoruz.</p></article>
-        <article><span>02</span><h3>Sonra uygulama</h3><p>Teoriyi aynı API üzerinde, gözlemlenebilir ve test edilebilir bir çıktıya dönüştürüyoruz.</p></article>
-        <article><span>03</span><h3>Her adım kayıtlı</h3><p>Her `ref/sNN-*` branch'i ilgili session'ın tamamlanmış referans noktasıdır.</p></article>
+        <article><span>01</span><h3>Mevcut durumu oku</h3><p>Önceki session'ın ne ürettiğini ve yeni ihtiyaç karşısında nerede sınırlı kaldığını netleştiriyoruz.</p></article>
+        <article><span>02</span><h3>Gerekli parçayı ekle</h3><p>Yeni kavramı bağımsız bir örnek yerine çalışan API'nin üzerine, gerçek ihtiyacı çözecek ölçüde ekliyoruz.</p></article>
+        <article><span>03</span><h3>Yeni referansı bırak</h3><p>Her `ref/sNN-*` branch'i bir sonraki session'ın başlangıç noktası olacak tamamlanmış proje durumudur.</p></article>
       </div>
     </section>
 
@@ -121,20 +121,31 @@
       <div id="dialog-meta" class="dialog-meta"></div>
       <p id="dialog-summary" class="dialog-summary"></p>
 
+      <section class="session-transition" aria-label="Session geçiş özeti">
+        <div class="transition-baseline">
+          <span>Başlangıç noktası</span>
+          <p id="dialog-baseline"></p>
+        </div>
+        <div class="transition-additions">
+          <span>Bu session'da neler eklenecek?</span>
+          <ul id="dialog-additions"></ul>
+        </div>
+      </section>
+
       <section class="guide-section" aria-labelledby="theory-title">
         <div class="guide-heading">
-          <span class="guide-kicker">01 · Anlatım</span>
-          <h3 id="theory-title">Konu akışı</h3>
-          <p>Kavramlar sunum sırasında bu sırayla ele alınır.</p>
+          <span class="guide-kicker">01 · Neden?</span>
+          <h3 id="theory-title">Eklemelerin gerekçesi</h3>
+          <p>Her yeni parçanın önceki session'daki hangi sınırı çözdüğünü bu sırayla ele al.</p>
         </div>
         <div id="dialog-topics" class="dialog-topics"></div>
       </section>
 
       <section class="guide-section" aria-labelledby="checklist-title">
         <div class="guide-heading">
-          <span class="guide-kicker">02 · Uygulama</span>
-          <h3 id="checklist-title">İlerleme sırası</h3>
-          <p>Branch'i yeniden üretirken hiçbir adımı atlamamak için sırayla ilerle.</p>
+          <span class="guide-kicker">02 · Nasıl?</span>
+          <h3 id="checklist-title">Önceki branch üzerine ekle</h3>
+          <p>Bir önceki session'ın branch'inden başlayıp yeni yapıyı adım adım oluştur.</p>
         </div>
         <ol id="dialog-checklist" class="implementation-list"></ol>
       </section>
@@ -143,7 +154,7 @@
         <div class="guide-heading">
           <span class="guide-kicker" lang="en">03 · Coding</span>
           <h3 id="coding-title">Kodlama adımları</h3>
-          <p>Tüm adımları ekle, düzenle, sil veya sırala. Değişikliklerin yalnızca bu tarayıcıda saklanır.</p>
+          <p>Örnekleri önceki branch'in üzerine uygula; adımları ihtiyacına göre düzenle, ekle, sil veya sırala.</p>
         </div>
         <div class="code-section-actions">
           <button id="add-code-step" class="manage-button primary" type="button">+ Yeni kodlama adımı</button>
@@ -153,7 +164,7 @@
       </section>
 
       <div class="dialog-outcome">
-        <span>Session sonu kazanımları</span>
+        <span>Bu session sonunda</span>
         <ul id="dialog-outcome"></ul>
       </div>
     </div>
@@ -164,7 +175,7 @@
     <span>Öğren, uygula, ilerlet.</span>
   </footer>
 
-  <script src="session-details.js?v=9"></script>
-  <script src="app.js?v=9"></script>
+  <script src="session-details.js?v=10"></script>
+  <script src="app.js?v=10"></script>
 </body>
 </html>

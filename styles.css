@@ -165,7 +165,14 @@ dialog::backdrop { background: rgba(17, 24, 39, .58); backdrop-filter: blur(4px)
 .dialog-meta > span { padding: 5px 10px; border-radius: 99px; color: var(--muted); background: var(--surface); font-size: .78rem; }
 .dialog-meta .branch-link { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 99px; color: var(--accent); background: var(--accent-soft); font-size: .78rem; font-weight: 750; text-decoration: none; }
 .dialog-meta .branch-link:hover { color: white; background: var(--accent); }
-.dialog-summary { max-width: 800px; margin: 24px 0 42px; color: var(--muted); font-size: 1.06rem; }
+.dialog-summary { max-width: 880px; margin: 24px 0 30px; color: var(--muted); font-size: 1.06rem; }
+.session-transition { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); margin-bottom: 18px; overflow: hidden; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); }
+.session-transition > div { padding: 24px; }
+.transition-baseline { border-right: 1px solid var(--line); }
+.session-transition span { display: block; margin-bottom: 10px; color: var(--accent); font-size: .72rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.session-transition p { margin: 0; color: var(--muted); font-size: .9rem; }
+.session-transition ul { display: grid; gap: 7px; margin: 0; padding-left: 20px; font-size: .88rem; }
+.session-transition li { padding-left: 3px; }
 .guide-section { padding: 38px 0; border-top: 1px solid var(--line); }
 .guide-heading { display: grid; grid-template-columns: 120px 220px 1fr; gap: 20px; align-items: baseline; margin-bottom: 26px; }
 .guide-heading h3 { margin: 0; font-size: 1.4rem; }
@@ -195,9 +202,9 @@ dialog::backdrop { background: rgba(17, 24, 39, .58); backdrop-filter: blur(4px)
 .code-step summary::-webkit-details-marker { display: none; }
 .code-step summary:hover .code-step-copy strong { color: var(--accent); }
 .code-step-number { color: var(--accent); font-size: .75rem; font-weight: 800; }
-.code-step-copy { display: grid; gap: 4px; }
+.code-step-copy { display: grid; min-width: 0; gap: 4px; }
 .code-step-copy strong { transition: color .18s ease; }
-.code-step-copy small { width: fit-content; padding: 2px 7px; border-radius: 5px; color: var(--accent); background: var(--accent-soft); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+.code-step-copy small { width: fit-content; max-width: 100%; padding: 2px 7px; overflow-wrap: anywhere; border-radius: 5px; color: var(--accent); background: var(--accent-soft); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
 .code-step-copy > span { margin-top: 4px; color: var(--muted); font-size: .84rem; }
 .code-toggle { display: grid; width: 28px; height: 28px; place-items: center; border: 1px solid var(--line); border-radius: 50%; font-size: 1.1rem; transition: transform .2s ease; }
 .code-step[open] .code-toggle { transform: rotate(45deg); }
@@ -254,6 +261,8 @@ footer { display: flex; justify-content: space-between; padding: 28px 0 42px; bo
   .principle-grid p { grid-column: 2; }
   .dialog-head { padding: 22px; }
   .dialog-body { padding: 22px; }
+  .session-transition { grid-template-columns: 1fr; }
+  .transition-baseline { border-right: 0; border-bottom: 1px solid var(--line); }
   .guide-heading { grid-template-columns: 1fr; gap: 6px; }
   .dialog-topics, .implementation-list { grid-template-columns: 1fr; }
   .dialog-topic:nth-child(odd) { border-right: 0; }
