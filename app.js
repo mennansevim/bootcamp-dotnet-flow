@@ -111,20 +111,26 @@ const sessions = [
   }
 ];
 
-sessions.forEach(session => Object.assign(session, window.sessionDetails?.[session.id] ?? {}));
+const branches = ["ref/s01-intro", "ref/s02-core-fundamentals", "ref/s03-web-api-basics", "ref/s04-data-management", "ref/s05-security-identity", "ref/s06-transactions-errors", "ref/s07-async-programming", "ref/s08-testing", "ref/s09-monitoring-logging", "ref/s10-deployment"];
+const repositoryUrl = "https://bitbucket.org/commencers/ecommerceapi/src";
+
+sessions.forEach((session, index) => Object.assign(session, {
+  branch: branches[index],
+  branchUrl: `${repositoryUrl}/${encodeURIComponent(branches[index])}/`
+}, window.sessionDetails?.[session.id] ?? {}));
 
 const localDay = (value = new Date()) => Date.UTC(value.getFullYear(), value.getMonth(), value.getDate());
 const asDay = value => Date.parse(`${value}T00:00:00Z`);
 const today = localDay();
 const completed = sessions.filter(session => today > asDay(session.end)).length;
 const focus = sessions.find(session => today <= asDay(session.end)) ?? sessions.at(-1);
-const focusState = today < asDay(focus.start) ? "Yaklaşan session" : today <= asDay(focus.end) ? "Şu anki session" : "Bootcamp tamamlandı";
+const focusState = today < asDay(focus.start) ? "Yaklaşan oturum" : today <= asDay(focus.end) ? "Şu anki oturum" : "Bootcamp tamamlandı";
 
 document.querySelector("#current-label").textContent = focusState;
 document.querySelector("#current-title").textContent = `Session ${focus.id} · ${focus.title}`;
 document.querySelector("#current-speaker").textContent = focus.speaker;
 document.querySelector("#current-date").textContent = focus.dates;
-document.querySelector("#progress-text").textContent = `${completed} / ${sessions.length} session`;
+document.querySelector("#progress-text").textContent = `${completed} / ${sessions.length} oturum`;
 document.querySelector("#progress-bar").style.width = `${(completed / sessions.length) * 100}%`;
 document.querySelector("[role='progressbar']").setAttribute("aria-valuenow", completed);
 
@@ -155,6 +161,16 @@ sessions.forEach(session => {
 });
 
 const dialog = document.querySelector("#session-dialog");
+const codeStorageKey = (sessionId, codeIndex) => `bootcamp-code-s${sessionId}-${codeIndex}`;
+const readStoredCode = key => {
+  try { return localStorage.getItem(key); }
+  catch { return null; }
+};
+const storeCode = (key, code) => {
+  try { localStorage.setItem(key, code); }
+  catch { return false; }
+  return true;
+};
 const escapeHtml = value => value.replace(/[&<>"]/g, character => ({
   "&": "&amp;",
   "<": "&lt;",
@@ -165,7 +181,7 @@ const escapeHtml = value => value.replace(/[&<>"]/g, character => ({
 const openSession = session => {
   document.querySelector("#dialog-number").textContent = `Session ${String(session.id).padStart(2, "0")}`;
   document.querySelector("#dialog-title").textContent = session.title;
-  document.querySelector("#dialog-meta").innerHTML = `<span>${session.speaker}</span><span>${session.dates}</span><span>${session.format}</span>`;
+  document.querySelector("#dialog-meta").innerHTML = `<span>${session.speaker}</span><span>${session.dates}</span><span>${session.format}</span><a class="branch-link" href="${session.branchUrl}" target="_blank" rel="noopener noreferrer">${session.branch} <span aria-hidden="true">↗</span></a>`;
   document.querySelector("#dialog-summary").textContent = session.summary;
   document.querySelector("#dialog-topics").innerHTML = session.theory.map((topic, index) => `
     <article class="dialog-topic">
@@ -178,7 +194,9 @@ const openSession = session => {
     </article>`).join("");
   document.querySelector("#dialog-checklist").innerHTML = session.checklist
     .map(item => `<li><span>${item}</span></li>`).join("");
-  document.querySelector("#dialog-code").innerHTML = session.code.map((step, index) => `
+  document.querySelector("#dialog-code").innerHTML = session.code.map((step, index) => {
+    const savedCode = readStoredCode(codeStorageKey(session.id, index));
+    return `
     <details class="code-step">
       <summary>
         <span class="code-step-number">${String(index + 1).padStart(2, "0")}</span>
@@ -191,18 +209,49 @@ const openSession = session => {
       </summary>
       <div class="code-panel">
         <div class="code-toolbar">
-          <span>${step.language}</span>
-          <button class="copy-button" type="button" data-code-index="${index}">Kopyala</button>
+          <span class="code-language">${step.language}</span>
+          <span class="code-actions"><button class="code-button edit-button" type="button" data-code-index="${index}" aria-pressed="false" aria-live="polite">Düzenle</button><button class="code-button copy-button" type="button" data-code-index="${index}" aria-live="polite">Kopyala</button></span>
         </div>
-        <pre><code class="language-${step.language}">${escapeHtml(step.code)}</code></pre>
+        <pre><code class="language-${step.language}">${escapeHtml(savedCode ?? step.code)}</code></pre>
       </div>
-    </details>`).join("");
+    </details>`;
+  }).join("");
   document.querySelector("#dialog-outcome").textContent = session.outcome;
+  document.querySelectorAll(".edit-button").forEach(button => {
+    button.addEventListener("click", () => {
+      const codeIndex = Number(button.dataset.codeIndex);
+      const code = button.closest(".code-panel").querySelector("code");
+      const isEditing = button.getAttribute("aria-pressed") === "true";
+      if (isEditing) {
+        code.removeAttribute("contenteditable");
+        code.removeAttribute("role");
+        code.removeAttribute("aria-label");
+        code.removeAttribute("aria-multiline");
+        storeCode(codeStorageKey(session.id, codeIndex), code.textContent);
+        button.setAttribute("aria-pressed", "false");
+        button.textContent = "Kaydedildi";
+        window.setTimeout(() => { button.textContent = "Düzenle"; }, 1200);
+        return;
+      }
+      code.setAttribute("contenteditable", "plaintext-only");
+      code.setAttribute("role", "textbox");
+      code.setAttribute("aria-label", `${session.code[codeIndex].title} kodunu düzenle`);
+      code.setAttribute("aria-multiline", "true");
+      code.oninput = () => storeCode(codeStorageKey(session.id, codeIndex), code.textContent);
+      code.focus();
+      button.setAttribute("aria-pressed", "true");
+      button.textContent = "Kaydet";
+    });
+  });
   document.querySelectorAll(".copy-button").forEach(button => {
     button.addEventListener("click", async () => {
-      const step = session.code[Number(button.dataset.codeIndex)];
-      await navigator.clipboard.writeText(step.code);
-      button.textContent = "Kopyalandı";
+      const code = button.closest(".code-panel").querySelector("code").textContent;
+      try {
+        await navigator.clipboard.writeText(code);
+        button.textContent = "Kopyalandı";
+      } catch {
+        button.textContent = "Kopyalanamadı";
+      }
       window.setTimeout(() => { button.textContent = "Kopyala"; }, 1400);
     });
   });

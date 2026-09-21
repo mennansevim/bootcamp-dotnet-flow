@@ -7,7 +7,7 @@
   <meta name="theme-color" content="#111827">
   <title>.NET Bootcamp · Session Flow</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css?v=3">
+  <link rel="stylesheet" href="styles.css?v=6">
 </head>
 <body>
   <header class="site-header">
@@ -15,10 +15,12 @@
       <span class="brand-mark" aria-hidden="true">N</span>
       <span>.NET Bootcamp</span>
     </a>
-    <nav aria-label="Sayfa navigasyonu">
-      <a href="#flow">Akış</a>
-      <a href="#principles">Yaklaşım</a>
-    </nav>
+    <div class="header-actions">
+      <a class="presentation-link" href="https://commencis.sharepoint.com/:f:/r/sites/backend/Backend%20Camp/DotNet/Presentation?d=w472189bc7c0a4778bf5f2cc9aa7c9c27&amp;csf=1&amp;web=1&amp;e=JsZTcb" target="_blank" rel="noopener noreferrer">Presentation <span aria-hidden="true">↗</span></a>
+      <nav aria-label="Sayfa navigasyonu">
+        <a href="#flow">Akış</a><a href="#principles">Yaklaşım</a><a href="#quiz">Quiz</a><a href="#challenge">Challenge</a>
+      </nav>
+    </div>
   </header>
 
   <main id="top">
@@ -73,12 +75,41 @@
         <article><span>03</span><h3>Her adım kayıtlı</h3><p>Her `ref/sNN-*` branch'i ilgili session'ın tamamlanmış referans noktasıdır.</p></article>
       </div>
     </section>
+
+    <section id="quiz" class="quiz-section" aria-labelledby="quiz-title">
+      <div class="section-heading"><div><span class="eyebrow">Bilgini test et</span><h2 id="quiz-title" lang="en">Quiz</h2></div></div>
+      <div class="quiz-empty" aria-label="Quiz içeriği daha sonra eklenecek"></div>
+    </section>
+
+    <section id="challenge" class="challenge-section" aria-labelledby="challenge-title">
+      <div class="challenge-hero">
+        <div>
+          <span class="challenge-label" lang="en">GitHub · SQL Challenge</span>
+          <h2 id="challenge-title">Kaşıkçı Elması kayıp.<br><span>Hırsızı SQL ile bul.</span></h2>
+          <p>28 Temmuz 2024'te Topkapı Sarayı'nda işlenen vakayı çöz. Tanık, güvenlik, ATM, telefon ve uçuş kayıtlarını ilişkilendir; ulaştığın her sonucu veritabanındaki kanıtlarla destekle.</p>
+          <div class="challenge-actions">
+            <a class="challenge-button primary" href="https://github.com/mennansevim/dotnet-onboarding-catch-the-thief" target="_blank" rel="noopener noreferrer">Challenge'ı aç <span aria-hidden="true">↗</span></a>
+            <a class="challenge-button secondary" href="https://github.com/mennansevim/dotnet-onboarding-catch-the-thief/releases/download/v1.0.0/istanbul_heist.db">Veritabanını indir <span aria-hidden="true">↓</span></a>
+          </div>
+        </div>
+        <div class="case-file" aria-label="Vaka özeti">
+          <span class="case-stamp">CASE #2807</span>
+          <dl><div><dt>10</dt><dd>ilişkili tablo</dd></div><div><dt>927</dt><dd>kurgu kayıt</dd></div><div><dt>3</dt><dd>kanıtlanacak cevap</dd></div></dl>
+          <p><code>SELECT</code> dışında hiçbir veri değiştirme komutuna ihtiyacın yok.</p>
+        </div>
+      </div>
+      <div class="challenge-flow" aria-label="Challenge adımları">
+        <article><span>01</span><h3>İzleri takip et</h3><p><code>istanbul_heist.db</code> dosyasını SQLite ile aç; olay raporundan başlayıp kayıtlar arasındaki bağlantıları bul.</p></article>
+        <article><span>02</span><h3>Kanıtlarını kaydet</h3><p>Sorgularını ve araştırma notlarını <code>log.sql</code>, üç nihai cevabını <code>answers.txt</code> içinde hazırla.</p></article>
+        <article><span>03</span><h3>Pull Request gönder</h3><p>Repoyu fork et, dosyalarını <code>cevaplar/Ad-Soyad/</code> altına ekle ve çözümünü Pull Request ile teslim et.</p></article>
+      </div>
+    </section>
   </main>
 
   <dialog id="session-dialog" aria-labelledby="dialog-title">
     <div class="dialog-head">
       <div>
-        <span id="dialog-number" class="eyebrow"></span>
+        <span id="dialog-number" class="eyebrow" lang="en"></span>
         <h2 id="dialog-title"></h2>
       </div>
       <button id="dialog-close" class="icon-button" type="button" aria-label="Detayı kapat">×</button>
@@ -107,15 +138,15 @@
 
       <section class="guide-section code-guide" aria-labelledby="coding-title">
         <div class="guide-heading">
-          <span class="guide-kicker">03 · Coding</span>
+          <span class="guide-kicker" lang="en">03 · Coding</span>
           <h3 id="coding-title">Kodlama adımları</h3>
-          <p>Dosya yolunu takip et; kodu aç, incele veya tek tıkla kopyala.</p>
+          <p>Kodu aç ve düzenle. Değişikliklerin otomatik olarak yalnızca bu tarayıcıda saklanır.</p>
         </div>
         <div id="dialog-code" class="code-steps"></div>
       </section>
 
       <div class="dialog-outcome">
-        <span>Session çıktısı</span>
+        <span>Oturum çıktısı</span>
         <p id="dialog-outcome"></p>
       </div>
     </div>
@@ -126,7 +157,7 @@
     <span>Öğren, uygula, ilerlet.</span>
   </footer>
 
-  <script src="session-details.js?v=3"></script>
-  <script src="app.js?v=3"></script>
+  <script src="session-details.js?v=6"></script>
+  <script src="app.js?v=6"></script>
 </body>
 </html>
