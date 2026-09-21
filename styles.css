@@ -127,7 +127,7 @@ h2 { margin: 12px 0 0; font-size: clamp(2.1rem, 4vw, 3.5rem); line-height: 1.04;
 .quiz-section { min-height: 390px; padding: 88px 0; border-top: 1px solid var(--line); }
 .quiz-section .section-heading { margin-bottom: 32px; }
 .quiz-empty { min-height: 170px; border: 1px dashed var(--line); border-radius: var(--radius); background: linear-gradient(135deg, var(--surface), var(--paper)); }
-.challenge-section { margin-bottom: 112px; overflow: hidden; border-radius: 28px; color: #f8fafc; background: #101828; }
+.challenge-section { overflow: hidden; border-radius: 28px; color: #f8fafc; background: #101828; }
 .challenge-hero { display: grid; grid-template-columns: 1.25fr .75fr; gap: 72px; padding: 68px; }
 .challenge-label { display: inline-block; margin-bottom: 20px; color: #a99aff; font-size: .74rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
 .challenge-hero h2 { margin: 0 0 24px; font-size: clamp(2.5rem, 5vw, 4.5rem); }
@@ -138,7 +138,9 @@ h2 { margin: 12px 0 0; font-size: clamp(2.1rem, 4vw, 3.5rem); line-height: 1.04;
 .challenge-button.primary { border-color: var(--accent); background: var(--accent); }
 .challenge-button.secondary { color: #e4e7ec; background: #1d2939; }
 .challenge-button:hover { border-color: #a99aff; }
-.case-file { align-self: end; padding: 28px; border: 1px solid #344054; border-radius: 18px; background: #1d2939; }
+.challenge-visual { display: grid; align-self: center; gap: 18px; }
+.challenge-visual > img { display: block; width: 100%; height: auto; filter: drop-shadow(0 24px 32px rgba(0, 0, 0, .28)); }
+.case-file { padding: 24px; border: 1px solid #344054; border-radius: 18px; background: #1d2939; }
 .case-stamp { display: inline-block; padding: 4px 9px; border: 1px solid #f97066; border-radius: 5px; color: #fda29b; font: 750 .7rem/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .08em; transform: rotate(-2deg); }
 .case-file dl { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 28px 0; }
 .case-file dl div { border-left: 1px solid #475467; padding-left: 12px; }
@@ -224,7 +226,7 @@ footer { display: flex; justify-content: space-between; padding: 28px 0 42px; bo
   .principle-grid article { grid-template-columns: 34px 1fr; }
   .quiz-section { min-height: 300px; padding: 64px 0; }
   .quiz-empty { min-height: 120px; }
-  .challenge-section { margin-inline: -16px; margin-bottom: 72px; border-radius: 20px; }
+  .challenge-section { margin-inline: -16px; border-radius: 20px; }
   .challenge-hero { grid-template-columns: 1fr; gap: 38px; padding: 38px 24px; }
   .challenge-flow { grid-template-columns: 1fr; }
   .challenge-flow article { border-right: 0; border-bottom: 1px solid #344054; }

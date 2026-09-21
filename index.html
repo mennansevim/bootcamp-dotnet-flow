@@ -7,7 +7,7 @@
   <meta name="theme-color" content="#111827">
   <title>.NET Bootcamp · Session Flow</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css?v=6">
+  <link rel="stylesheet" href="styles.css?v=7">
 </head>
 <body>
   <header class="site-header">
@@ -18,7 +18,7 @@
     <div class="header-actions">
       <a class="presentation-link" href="https://commencis.sharepoint.com/:f:/r/sites/backend/Backend%20Camp/DotNet/Presentation?d=w472189bc7c0a4778bf5f2cc9aa7c9c27&amp;csf=1&amp;web=1&amp;e=JsZTcb" target="_blank" rel="noopener noreferrer">Presentation <span aria-hidden="true">↗</span></a>
       <nav aria-label="Sayfa navigasyonu">
-        <a href="#flow">Akış</a><a href="#principles">Yaklaşım</a><a href="#quiz">Quiz</a><a href="#challenge">Challenge</a>
+        <a href="#flow">Akış</a><a href="#principles">Yaklaşım</a><a href="#challenge">Challenge</a><a href="#quiz">Quiz</a>
       </nav>
     </div>
   </header>
@@ -76,11 +76,6 @@
       </div>
     </section>
 
-    <section id="quiz" class="quiz-section" aria-labelledby="quiz-title">
-      <div class="section-heading"><div><span class="eyebrow">Bilgini test et</span><h2 id="quiz-title" lang="en">Quiz</h2></div></div>
-      <div class="quiz-empty" aria-label="Quiz içeriği daha sonra eklenecek"></div>
-    </section>
-
     <section id="challenge" class="challenge-section" aria-labelledby="challenge-title">
       <div class="challenge-hero">
         <div>
@@ -92,10 +87,13 @@
             <a class="challenge-button secondary" href="https://github.com/mennansevim/dotnet-onboarding-catch-the-thief/releases/download/v1.0.0/istanbul_heist.db">Veritabanını indir <span aria-hidden="true">↓</span></a>
           </div>
         </div>
-        <div class="case-file" aria-label="Vaka özeti">
-          <span class="case-stamp">CASE #2807</span>
-          <dl><div><dt>10</dt><dd>ilişkili tablo</dd></div><div><dt>927</dt><dd>kurgu kayıt</dd></div><div><dt>3</dt><dd>kanıtlanacak cevap</dd></div></dl>
-          <p><code>SELECT</code> dışında hiçbir veri değiştirme komutuna ihtiyacın yok.</p>
+        <div class="challenge-visual">
+          <img src="kasikci-diamond.svg" alt="Kaşıkçı Elması için hazırlanmış oval elmas illüstrasyonu" width="560" height="420">
+          <div class="case-file" aria-label="Vaka özeti">
+            <span class="case-stamp">CASE #2807</span>
+            <dl><div><dt>10</dt><dd>ilişkili tablo</dd></div><div><dt>927</dt><dd>kurgu kayıt</dd></div><div><dt>3</dt><dd>kanıtlanacak cevap</dd></div></dl>
+            <p><code>SELECT</code> dışında hiçbir veri değiştirme komutuna ihtiyacın yok.</p>
+          </div>
         </div>
       </div>
       <div class="challenge-flow" aria-label="Challenge adımları">
@@ -103,6 +101,11 @@
         <article><span>02</span><h3>Kanıtlarını kaydet</h3><p>Sorgularını ve araştırma notlarını <code>log.sql</code>, üç nihai cevabını <code>answers.txt</code> içinde hazırla.</p></article>
         <article><span>03</span><h3>Pull Request gönder</h3><p>Repoyu fork et, dosyalarını <code>cevaplar/Ad-Soyad/</code> altına ekle ve çözümünü Pull Request ile teslim et.</p></article>
       </div>
+    </section>
+
+    <section id="quiz" class="quiz-section" aria-labelledby="quiz-title">
+      <div class="section-heading"><div><span class="eyebrow">Bilgini test et</span><h2 id="quiz-title" lang="en">Quiz</h2></div></div>
+      <div class="quiz-empty" aria-label="Quiz içeriği daha sonra eklenecek"></div>
     </section>
   </main>
 
@@ -157,7 +160,7 @@
     <span>Öğren, uygula, ilerlet.</span>
   </footer>
 
-  <script src="session-details.js?v=6"></script>
-  <script src="app.js?v=6"></script>
+  <script src="session-details.js?v=7"></script>
+  <script src="app.js?v=7"></script>
 </body>
 </html>
