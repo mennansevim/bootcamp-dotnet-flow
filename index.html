@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content=".NET Bootcamp session akışı, takvimi ve konu başlıkları.">
+  <meta name="theme-color" content="#111827">
+  <title>.NET Bootcamp · Session Flow</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="#top" aria-label="Ana sayfa">
+      <span class="brand-mark" aria-hidden="true">N</span>
+      <span>.NET Bootcamp</span>
+    </a>
+    <nav aria-label="Sayfa navigasyonu">
+      <a href="#flow">Akış</a>
+      <a href="#principles">Yaklaşım</a>
+    </nav>
+  </header>
+
+  <main id="top">
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="eyebrow">20 Ekim — 15 Aralık 2026</div>
+      <h1 id="hero-title">Bir API'nin fikirden<br><span>production'a yolculuğu.</span></h1>
+      <p class="hero-copy">On session boyunca aynı e-ticaret API'sini adım adım geliştiriyor; her kavramı çalışan kodun üzerine inşa ediyoruz.</p>
+
+      <div class="current-session" aria-live="polite">
+        <div>
+          <span class="status-dot" aria-hidden="true"></span>
+          <span id="current-label" class="current-label">Program yükleniyor</span>
+        </div>
+        <strong id="current-title">—</strong>
+        <div class="current-meta">
+          <span id="current-speaker">—</span>
+          <span aria-hidden="true">·</span>
+          <time id="current-date">—</time>
+        </div>
+      </div>
+
+      <div class="progress-block">
+        <div class="progress-copy">
+          <span>Bootcamp ilerlemesi</span>
+          <strong id="progress-text">0 / 10 session</strong>
+        </div>
+        <div class="progress-track" role="progressbar" aria-label="Bootcamp ilerlemesi" aria-valuemin="0" aria-valuemax="10" aria-valuenow="0">
+          <span id="progress-bar"></span>
+        </div>
+      </div>
+    </section>
+
+    <section id="flow" class="flow-section" aria-labelledby="flow-title">
+      <div class="section-heading">
+        <div>
+          <span class="eyebrow">Öğrenme rotası</span>
+          <h2 id="flow-title">Session akışı</h2>
+        </div>
+        <p>Her oturum bir öncekinin çıktısını devralır. Bir session seçerek konu akışını ve uygulama hedeflerini görebilirsin.</p>
+      </div>
+      <div id="session-list" class="session-list"></div>
+    </section>
+
+    <section id="principles" class="principles" aria-labelledby="principles-title">
+      <div>
+        <span class="eyebrow">Çalışma biçimi</span>
+        <h2 id="principles-title">Tek proje.<br>On anlamlı adım.</h2>
+      </div>
+      <div class="principle-grid">
+        <article><span>01</span><h3>Önce kavram</h3><p>Her teknik kararın nedenini kısa ve gerçek hayat odaklı bir anlatımla kuruyoruz.</p></article>
+        <article><span>02</span><h3>Sonra uygulama</h3><p>Teoriyi aynı API üzerinde, gözlemlenebilir ve test edilebilir bir çıktıya dönüştürüyoruz.</p></article>
+        <article><span>03</span><h3>Her adım kayıtlı</h3><p>Her `ref/sNN-*` branch'i ilgili session'ın tamamlanmış referans noktasıdır.</p></article>
+      </div>
+    </section>
+  </main>
+
+  <dialog id="session-dialog" aria-labelledby="dialog-title">
+    <div class="dialog-head">
+      <div>
+        <span id="dialog-number" class="eyebrow"></span>
+        <h2 id="dialog-title"></h2>
+      </div>
+      <button id="dialog-close" class="icon-button" type="button" aria-label="Detayı kapat">×</button>
+    </div>
+    <div id="dialog-meta" class="dialog-meta"></div>
+    <p id="dialog-summary" class="dialog-summary"></p>
+    <div id="dialog-topics" class="dialog-topics"></div>
+    <div class="dialog-outcome">
+      <span>Session çıktısı</span>
+      <p id="dialog-outcome"></p>
+    </div>
+  </dialog>
+
+  <footer>
+    <span>.NET 8 · ECommerceApi</span>
+    <span>Öğren, uygula, ilerlet.</span>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
