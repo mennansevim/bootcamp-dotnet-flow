@@ -161,22 +161,137 @@ sessions.forEach(session => {
 });
 
 const dialog = document.querySelector("#session-dialog");
-const codeStorageKey = (sessionId, codeIndex) => `bootcamp-code-s${sessionId}-${codeIndex}`;
-const readStoredCode = key => {
-  try { return localStorage.getItem(key); }
-  catch { return null; }
-};
-const storeCode = (key, code) => {
-  try { localStorage.setItem(key, code); }
-  catch { return false; }
-  return true;
-};
 const escapeHtml = value => value.replace(/[&<>"]/g, character => ({
   "&": "&amp;",
   "<": "&lt;",
   ">": "&gt;",
   '"': "&quot;"
 })[character]);
+const codeStepsStorageKey = sessionId => `bootcamp-code-steps-v1-s${sessionId}`;
+const legacyCodeStorageKey = (sessionId, codeIndex) => `bootcamp-code-s${sessionId}-${codeIndex}`;
+const normalizeCodeStep = step => ({
+  title: String(step.title ?? "Yeni kodlama adımı"),
+  file: String(step.file ?? "ECommerceApi/"),
+  why: String(step.why ?? "Bu adımın amacını buraya yaz."),
+  language: String(step.language ?? "csharp"),
+  code: String(step.code ?? "// Kodunu buraya yaz.")
+});
+const defaultCodeSteps = session => session.code.map(normalizeCodeStep);
+const readCodeSteps = session => {
+  try {
+    const stored = JSON.parse(localStorage.getItem(codeStepsStorageKey(session.id)));
+    if (Array.isArray(stored)) return stored.map(normalizeCodeStep);
+  } catch { /* Varsayılan adımlarla devam et. */ }
+
+  return defaultCodeSteps(session).map((step, index) => {
+    try {
+      return { ...step, code: localStorage.getItem(legacyCodeStorageKey(session.id, index)) ?? step.code };
+    } catch {
+      return step;
+    }
+  });
+};
+const storeCodeSteps = session => {
+  try {
+    localStorage.setItem(codeStepsStorageKey(session.id), JSON.stringify(session.editableCode));
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+const renderCodeSteps = (session, openIndex = -1, editIndex = -1) => {
+  const root = document.querySelector("#dialog-code");
+  const steps = session.editableCode;
+
+  root.innerHTML = steps.length ? steps.map((step, index) => `
+    <details class="code-step"${index === openIndex ? " open" : ""}>
+      <summary>
+        <span class="code-step-number">${String(index + 1).padStart(2, "0")}</span>
+        <span class="code-step-copy">
+          <strong>${escapeHtml(step.title)}</strong>
+          <small>${escapeHtml(step.file)}</small>
+          <span>${escapeHtml(step.why)}</span>
+        </span>
+        <span class="code-toggle" aria-hidden="true">+</span>
+      </summary>
+      <div class="step-management" aria-label="${escapeHtml(step.title)} adım kontrolleri">
+        <button class="step-action" type="button" data-step-action="edit" data-code-index="${index}">Düzenle</button>
+        <button class="step-action" type="button" data-step-action="move-up" data-code-index="${index}"${index === 0 ? " disabled" : ""}>↑ Yukarı</button>
+        <button class="step-action" type="button" data-step-action="move-down" data-code-index="${index}"${index === steps.length - 1 ? " disabled" : ""}>↓ Aşağı</button>
+        <button class="step-action danger" type="button" data-step-action="delete" data-code-index="${index}">Sil</button>
+      </div>
+      <form class="step-editor" data-code-index="${index}"${index === editIndex ? "" : " hidden"}>
+        <label>Sıra no<input name="position" type="number" min="1" max="${steps.length}" value="${index + 1}" required></label>
+        <label class="wide">Başlık<input name="title" value="${escapeHtml(step.title)}" required></label>
+        <label>Dosya yolu<input name="file" value="${escapeHtml(step.file)}"></label>
+        <label>Dil<input name="language" value="${escapeHtml(step.language)}" placeholder="csharp"></label>
+        <label class="wide">Açıklama<textarea name="why">${escapeHtml(step.why)}</textarea></label>
+        <label class="full">Kod<textarea class="code-input" name="code" spellcheck="false">${escapeHtml(step.code)}</textarea></label>
+        <div class="editor-actions">
+          <button class="manage-button" type="button" data-step-action="cancel" data-code-index="${index}">Vazgeç</button>
+          <button class="manage-button primary" type="submit">Kaydet</button>
+        </div>
+      </form>
+      <div class="code-panel">
+        <div class="code-toolbar">
+          <span class="code-language">${escapeHtml(step.language)}</span>
+          <span class="code-actions"><button class="code-button copy-button" type="button" data-step-action="copy" data-code-index="${index}" aria-live="polite">Kopyala</button></span>
+        </div>
+        <pre><code class="language-${escapeHtml(step.language)}">${escapeHtml(step.code)}</code></pre>
+      </div>
+    </details>`).join("") : `<p class="code-empty">Henüz kodlama adımı yok. “Yeni kodlama adımı” ile ilk adımı ekleyebilirsin.</p>`;
+
+  root.querySelectorAll(".step-editor").forEach(form => {
+    form.addEventListener("submit", event => {
+      event.preventDefault();
+      const index = Number(form.dataset.codeIndex);
+      const data = new FormData(form);
+      const updated = normalizeCodeStep({
+        title: data.get("title"),
+        file: data.get("file"),
+        why: data.get("why"),
+        language: data.get("language"),
+        code: data.get("code")
+      });
+      const target = Math.max(0, Math.min(steps.length - 1, Number(data.get("position")) - 1));
+      steps.splice(index, 1);
+      steps.splice(target, 0, updated);
+      storeCodeSteps(session);
+      renderCodeSteps(session, target);
+    });
+  });
+
+  root.querySelectorAll("[data-step-action]").forEach(button => {
+    button.addEventListener("click", async () => {
+      const index = Number(button.dataset.codeIndex);
+      const action = button.dataset.stepAction;
+      if (action === "edit") return renderCodeSteps(session, index, index);
+      if (action === "cancel") return renderCodeSteps(session, index);
+      if (action === "move-up" || action === "move-down") {
+        const target = action === "move-up" ? index - 1 : index + 1;
+        [steps[index], steps[target]] = [steps[target], steps[index]];
+        storeCodeSteps(session);
+        return renderCodeSteps(session, target);
+      }
+      if (action === "delete") {
+        if (!window.confirm(`“${steps[index].title}” adımı silinsin mi?`)) return;
+        steps.splice(index, 1);
+        storeCodeSteps(session);
+        return renderCodeSteps(session, Math.min(index, steps.length - 1));
+      }
+      if (action === "copy") {
+        try {
+          await navigator.clipboard.writeText(steps[index].code);
+          button.textContent = "Kopyalandı";
+        } catch {
+          button.textContent = "Kopyalanamadı";
+        }
+        window.setTimeout(() => { button.textContent = "Kopyala"; }, 1400);
+      }
+    });
+  });
+};
 
 const openSession = session => {
   document.querySelector("#dialog-number").textContent = `Session ${String(session.id).padStart(2, "0")}`;
@@ -194,67 +309,24 @@ const openSession = session => {
     </article>`).join("");
   document.querySelector("#dialog-checklist").innerHTML = session.checklist
     .map(item => `<li><span>${item}</span></li>`).join("");
-  document.querySelector("#dialog-code").innerHTML = session.code.map((step, index) => {
-    const savedCode = readStoredCode(codeStorageKey(session.id, index));
-    return `
-    <details class="code-step">
-      <summary>
-        <span class="code-step-number">${String(index + 1).padStart(2, "0")}</span>
-        <span class="code-step-copy">
-          <strong>${step.title}</strong>
-          <small>${step.file}</small>
-          <span>${step.why}</span>
-        </span>
-        <span class="code-toggle" aria-hidden="true">+</span>
-      </summary>
-      <div class="code-panel">
-        <div class="code-toolbar">
-          <span class="code-language">${step.language}</span>
-          <span class="code-actions"><button class="code-button edit-button" type="button" data-code-index="${index}" aria-pressed="false" aria-live="polite">Düzenle</button><button class="code-button copy-button" type="button" data-code-index="${index}" aria-live="polite">Kopyala</button></span>
-        </div>
-        <pre><code class="language-${step.language}">${escapeHtml(savedCode ?? step.code)}</code></pre>
-      </div>
-    </details>`;
-  }).join("");
+  session.editableCode = readCodeSteps(session);
+  renderCodeSteps(session);
   document.querySelector("#dialog-outcome").textContent = session.outcome;
-  document.querySelectorAll(".edit-button").forEach(button => {
-    button.addEventListener("click", () => {
-      const codeIndex = Number(button.dataset.codeIndex);
-      const code = button.closest(".code-panel").querySelector("code");
-      const isEditing = button.getAttribute("aria-pressed") === "true";
-      if (isEditing) {
-        code.removeAttribute("contenteditable");
-        code.removeAttribute("role");
-        code.removeAttribute("aria-label");
-        code.removeAttribute("aria-multiline");
-        storeCode(codeStorageKey(session.id, codeIndex), code.textContent);
-        button.setAttribute("aria-pressed", "false");
-        button.textContent = "Kaydedildi";
-        window.setTimeout(() => { button.textContent = "Düzenle"; }, 1200);
-        return;
-      }
-      code.setAttribute("contenteditable", "plaintext-only");
-      code.setAttribute("role", "textbox");
-      code.setAttribute("aria-label", `${session.code[codeIndex].title} kodunu düzenle`);
-      code.setAttribute("aria-multiline", "true");
-      code.oninput = () => storeCode(codeStorageKey(session.id, codeIndex), code.textContent);
-      code.focus();
-      button.setAttribute("aria-pressed", "true");
-      button.textContent = "Kaydet";
-    });
-  });
-  document.querySelectorAll(".copy-button").forEach(button => {
-    button.addEventListener("click", async () => {
-      const code = button.closest(".code-panel").querySelector("code").textContent;
-      try {
-        await navigator.clipboard.writeText(code);
-        button.textContent = "Kopyalandı";
-      } catch {
-        button.textContent = "Kopyalanamadı";
-      }
-      window.setTimeout(() => { button.textContent = "Kopyala"; }, 1400);
-    });
-  });
+  document.querySelector("#add-code-step").onclick = () => {
+    session.editableCode.push(normalizeCodeStep({}));
+    storeCodeSteps(session);
+    const index = session.editableCode.length - 1;
+    renderCodeSteps(session, index, index);
+  };
+  document.querySelector("#reset-code-steps").onclick = () => {
+    if (!window.confirm("Bu session için yaptığın tüm kodlama adımı değişiklikleri silinsin mi?")) return;
+    try {
+      localStorage.removeItem(codeStepsStorageKey(session.id));
+      session.code.forEach((_, index) => localStorage.removeItem(legacyCodeStorageKey(session.id, index)));
+    } catch { /* Depolama kapalıysa varsayılanları yine göster. */ }
+    session.editableCode = defaultCodeSteps(session);
+    renderCodeSteps(session);
+  };
   dialog.showModal();
 };
 
