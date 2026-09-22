@@ -3,7 +3,7 @@ const sessions = [
     id: 1, title: ".NET ve Web API'ye Giriş", speaker: "Burak", dates: "20 Ekim 2026 · Salı", start: "2026-10-20", end: "2026-10-20", format: "Teori + kısa uygulama",
     summary: "Henüz bir uygulamamız yok. Bu oturumda .NET 8 çözümünü kuruyor, JSON yanıtı veren ilk controller'ları ve bellekte çalışan Product CRUD akışını ekliyoruz.",
     baseline: "Boş bir çalışma alanından başlıyoruz; henüz çözüm, proje veya endpoint bulunmuyor.",
-    additions: [".NET 8 Web API projesi ve çözüm iskeleti", "Hello, Weather ve Products controller'ları", "Product modeli ve bellekte CRUD akışı", "Routing, JSON yanıtları ve Swagger test ekranı"],
+    additions: [".NET 8 Web API projesi ve çözüm iskeleti", "Hello ve Products controller'ları", "Product modeli ve bellekte CRUD akışı", "Routing, JSON yanıtları ve Swagger test ekranı"],
     topics: [
       ["Proje temeli", "Boş klasörden çalışan .NET 8 çözümüne"],
       ["İlk HTTP yüzeyi", "Controller, route ve sorgu endpoint'leri"],
@@ -133,6 +133,25 @@ const sessions = [
 
 const branches = ["ref/s01-intro", "ref/s02-core-fundamentals", "ref/s03-web-api-basics", "ref/s04-data-management", "ref/s05-security-identity", "ref/s06-transactions-errors", "ref/s07-async-programming", "ref/s08-testing", "ref/s09-monitoring-logging", "ref/s10-deployment"];
 const repositoryUrl = "https://bitbucket.org/commencers/ecommerceapi/src";
+
+const themeStorageKey = "bootcamp-theme";
+const themeToggle = document.querySelector("#theme-toggle");
+const setTheme = theme => {
+  document.documentElement.dataset.theme = theme;
+  const isDark = theme === "dark";
+  const actionLabel = isDark ? "Açık temaya geç" : "Koyu temaya geç";
+  themeToggle.setAttribute("aria-label", actionLabel);
+  themeToggle.setAttribute("title", actionLabel);
+  themeToggle.setAttribute("aria-pressed", String(isDark));
+  document.querySelector('meta[name="theme-color"]').content = isDark ? "#0b1120" : "#ffffff";
+};
+
+setTheme(document.documentElement.dataset.theme === "dark" ? "dark" : "light");
+themeToggle.addEventListener("click", () => {
+  const theme = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+  setTheme(theme);
+  try { localStorage.setItem(themeStorageKey, theme); } catch { /* Tema yine bu oturumda uygulanır. */ }
+});
 
 sessions.forEach((session, index) => Object.assign(session, {
   branch: branches[index],
