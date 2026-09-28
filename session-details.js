@@ -693,95 +693,225 @@ public async Task<ActionResult<TransferResponseDto>> Transfer(
   },
   8: {
     theory: [
-            { title: "Neden Test Yazarız?", description: "S7 sonunda birçok katman ve endpoint birlikte çalışıyor; artık elle kontrol etmek güvenilir ve hızlı değil. Test projesi ekleyerek mevcut davranışı sonraki değişikliklere karşı otomatik güvenceye alıyoruz.", points: ["Hataları erken yakalama", "Refactoring sırasında hızlı geri bildirim", "Davranışı açıklayan yaşayan dokümantasyon"] },
-            { title: "Test Seviyeleri", description: "Her riski aynı tür testle çözmeye çalışmıyoruz. Servis kurallarını hızlı birim testleriyle, routing ve middleware bütünlüğünü ise daha kapsamlı HTTP testleriyle doğruluyoruz.", points: ["Tek sınıfı izole eden birim testi", "Birden çok bileşeni doğrulayan entegrasyon testi", "Hız, kapsam ve güven dengesi"] },
-            { title: "xUnit Temelleri", description: "Çözüme ECommerceApi.Tests projesini ekliyor; tek senaryoları Fact, veri çeşitlerini Theory olarak yazıyoruz. Arrange-Act-Assert düzeni, test takımının ortak okuma biçimini oluşturuyor.", points: ["`[Fact]` ile tek senaryo", "`[Theory]` ve `[InlineData]` ile parametrik test", "Arrange → Act → Assert düzeni"] },
-            { title: "Bağımlılıkları Taklit Etme", description: "ProductService testinde gerçek SQLite'a, controller testinde ise gerçek servise ihtiyaç duymuyoruz. Moq ile sınır bağımlılıklarına kontrollü yanıtlar vererek yalnızca hedef davranışı ölçüyoruz.", points: ["Moq ile bağımlılıkları izole etme", "`Setup` ile beklenen davranışı hazırlama", "`Verify` ile etkileşimi doğrulama"] },
-            { title: "Servis ve Controller Testleri", description: "S4'te eklediğimiz repository sınırı ProductService'i, S2'deki servis sınırı ise ProductsController'ı bağımsız test etmemizi sağlıyor. Başarılı ve hatalı yolları ayrı örneklerle kapsıyoruz.", points: ["Repository taklidiyle Product servis testi", "Servis taklidiyle controller sonucu testi", "Başarılı ve hatalı senaryoları ayrı ele alma"] },
-            { title: "Entegrasyon Testleri", description: "Birim testlerinin görmediği gerçek route, binding ve middleware akışı için WebApplicationFactory ekliyoruz. Üretimde kullanılan SQLite kaydını testte InMemory sağlayıcısıyla değiştirip gerçek HTTP çağrıları yapıyoruz.", points: ["`WebApplicationFactory<Program>` ile test sunucusu", "EF Core InMemory ile izole veri ortamı", "Gerçek HTTP isteği ve middleware işlem hattı"] },
-            { title: "Test Araçları ve Yapay Zekâ", description: "FluentAssertions testleri daha okunur, kod kapsamı raporu ise eksik alanları daha görünür hale getiriyor. Yapay zekâ önerilerini doğrudan kabul etmek yerine mevcut davranışı gerçekten kanıtlayıp kanıtlamadığını çalıştırarak denetliyoruz.", points: ["FluentAssertions ile okunabilir doğrulamalar", "Kod kapsamıyla test edilmeyen alanları görme", "Yapay zekâ üretimi testleri inceleyip çalıştırarak doğrulama"] }
+            { title: "Neden Test Yazarız?", description: "Testler hataları erken yakalar, refactoring güvenini artırır ve beklenen davranışı yaşayan dokümantasyona dönüştürür.", points: ["Hataları erken yakalama", "Refactoring sırasında hızlı geri bildirim", "Davranışı açıklayan yaşayan dokümantasyon"] },
+            { title: "Test Seviyeleri", description: "Unit ve integration testler farklı kapsam, hız ve güven dengeleriyle sistemin farklı risklerini doğrular.", points: ["Tek sınıfı izole eden unit test", "Birden çok bileşeni doğrulayan integration test", "Hız, kapsam ve güven dengesi"] },
+            { title: "xUnit Temelleri", description: "xUnit tek ve parametrik senaryoları Arrange, Act ve Assert düzeninde okunabilir testler olarak ifade eder.", points: ["`[Fact]` ile tek senaryo", "`[Theory]` ve `[InlineData]` ile parametrik test", "Arrange → Act → Assert düzeni"] },
+            { title: "Mocking", description: "Moq gerçek bağımlılıklar yerine kontrollü test double'ları kullanarak test edilen davranışı izole eder.", points: ["Moq ile bağımlılıkları izole etme", "`Setup` ile beklenen davranışı hazırlama", "`Verify` ile yapılan çağrıyı doğrulama"] },
+            { title: "Unit Testin Sınırı", description: "Mock'lanan bağımlılıklar her davranışı taşıyamaz; `IQueryable` üzerinde asenkron sorgu çalıştıran kod unit testte doğrulanamaz.", points: ["`Query()` dönen metotlar mock'la test edilemez", "Sayfalama ve arama gerçek sağlayıcı ister", "Bu boşluğu integration test kapatır"] },
+            { title: "Controller Sözleşmesi", description: "Controller testi iş kuralını değil, sonucun doğru HTTP cevabına çevrildiğini doğrular.", points: ["`ActionResult<T>` içinde sonuç `Result` alanındadır", "`Problem(...)` `NotFoundResult` değil `ObjectResult` döner", "201 cevabında `ActionName` ve `RouteValues` da doğrulanır"] },
+            { title: "Integration Testing", description: "WebApplicationFactory gerçek middleware ve routing pipeline'ını izole bir veri ortamıyla bellekte çalıştırır.", points: ["`WebApplicationFactory<Program>` ile test sunucusu", "Testlere özel InMemory veritabanı", "Gerçek HTTP isteği ve middleware pipeline'ı"] },
+            { title: "Test Araçları ve AI", description: "FluentAssertions okunabilir doğrulamalar sağlarken AI çıktıları insan incelemesi ve çalışan testlerle doğrulanmalıdır.", points: ["FluentAssertions 7.x ücretsiz lisansla kullanılır", "Code coverage hedef değil, harita olarak okunur", "AI üretimi testler okunmadan ve çalıştırılmadan kabul edilmez"] }
     ],
-        checklist: ["xUnit test projesini çözüme ekle.", "Moq, FluentAssertions, MVC Testing ve EF InMemory paketlerini kur.", "Program sınıfını WebApplicationFactory için erişilebilir yap.", "Product ve Bank servislerinin birim testlerini yaz.", "Products controller'ın HTTP sonuçlarını bağımsız test et.", "Products API için gerçek HTTP entegrasyon testleri oluştur.", "Tüm testleri ve isteğe bağlı kod kapsamı raporunu çalıştır."],
+        checklist: ["xUnit test projesini net8.0 hedefiyle oluştur ve solution'a ekle.", "Moq, FluentAssertions 7, Mvc.Testing ve EF InMemory paketlerini kur.", "Program sınıfını public partial yap, migration adımını IsRelational ile koru.", "ProductService için Fact, Theory ve Verify örnekleriyle unit test yaz.", "ProductsController'ın 200 / 404 ProblemDetails / 201 / 204 sözleşmesini doğrula.", "CustomWebApplicationFactory ile izole InMemory ortamı kur.", "Gerçek HTTP üzerinden sayfalama, uçtan uca oluşturma ve 400 senaryolarını test et.", "dotnet test ile tüm testleri çalıştır, isteğe bağlı coverage raporu al."],
     code: [
-    { title: "Test projesini ve paketleri kur", why: "Birim ve entegrasyon testi altyapısını API projesinden ayrı bir assembly içinde hazırlarız.", file: "Terminal", language: "bash", code: String.raw`dotnet new xunit -n ECommerceApi.Tests
+      { title: "Test projesini ve paketleri kur", why: "Test kodu canlıya çıkan derlemeye karışmasın diye ayrı bir assembly açılır; referans tek yönlüdür.", file: "Terminal", language: "bash", code: String.raw`dotnet new xunit -n ECommerceApi.Tests -f net8.0
 dotnet sln add ECommerceApi.Tests/ECommerceApi.Tests.csproj
 dotnet add ECommerceApi.Tests reference ECommerceApi/ECommerceApi.csproj
-dotnet add ECommerceApi.Tests package Moq
-dotnet add ECommerceApi.Tests package FluentAssertions
+
+dotnet add ECommerceApi.Tests package Moq --version 4.20.72
+dotnet add ECommerceApi.Tests package FluentAssertions --version 7.0.0
 dotnet add ECommerceApi.Tests package Microsoft.AspNetCore.Mvc.Testing --version 8.0.0
-dotnet add ECommerceApi.Tests package Microsoft.EntityFrameworkCore.InMemory --version 8.0.0` },
-    { title: "ProductService birim testi yaz", why: "Repository'yi testten ayırarak servisin eşleme ve bulunamadı davranışını doğrularız.", file: "ECommerceApi.Tests/UnitTests/ProductServiceTests.cs", language: "csharp", code: String.raw`[Fact]
-public async Task GetByIdAsync_WhenProductExists_ReturnsProduct()
+dotnet add ECommerceApi.Tests package Microsoft.EntityFrameworkCore.InMemory --version 8.0.0
+
+rm ECommerceApi.Tests/UnitTest1.cs
+mkdir -p ECommerceApi.Tests/UnitTests ECommerceApi.Tests/IntegrationTests` },
+      { title: "Program sınıfını teste aç", why: "Top-level statements ile üretilen Program internal'dır; ayrıca InMemory sağlayıcıda migration çalıştırılamaz.", file: "ECommerceApi/Program.cs", language: "csharp", code: String.raw`using (var scope = app.Services.CreateScope())
 {
-    var entity = new ProductEntity { Id = 1, Name = "Laptop", Price = 25000 };
-    _repository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(entity);
+    var dbContext = scope.ServiceProvider.GetRequiredService<BootcampDbContext>();
 
-    var result = await _service.GetByIdAsync(1);
-
-    result.Should().NotBeNull();
-    result!.Id.Should().Be(1);
-    result.Name.Should().Be("Laptop");
-}
-
-[Fact]
-public async Task GetByIdAsync_WhenProductDoesNotExist_ReturnsNull()
-{
-    _repository.Setup(r => r.GetByIdAsync(999)).ReturnsAsync((ProductEntity?)null);
-    var result = await _service.GetByIdAsync(999);
-    result.Should().BeNull();
-}` },
-    { title: "Controller yanıt türünü test et", why: "Servis sonucunun HTTP action result sözleşmesine doğru çevrildiğini kontrol ederiz.", file: "ECommerceApi.Tests/UnitTests/ProductsControllerTests.cs", language: "csharp", code: String.raw`[Fact]
-public async Task GetById_ShouldReturnNotFound_WhenProductNotExists()
-{
-    _mockService.Setup(s => s.GetByIdAsync(999))
-        .ReturnsAsync((ProductDto?)null);
-
-    var result = await _controller.GetById(999);
-
-    result.Result.Should().BeOfType<NotFoundResult>();
-}
-
-[Fact]
-public async Task Create_ShouldReturnCreated_WhenValidDto()
-{
-    var dto = new CreateProductDto { Name = "New Product", Price = 500, Stock = 10 };
-    _mockService.Setup(s => s.CreateAsync(dto))
-        .ReturnsAsync(new ProductDto { Id = 1, Name = dto.Name, Price = dto.Price });
-
-    var result = await _controller.Create(dto);
-
-    result.Result.Should().BeOfType<CreatedAtActionResult>()
-        .Which.StatusCode.Should().Be(201);
-}` },
-    { title: "Entegrasyon testi factory'sini hazırla", why: "Gerçek API işlem hattını çalıştırırken üretim veritabanını izole bir InMemory sağlayıcısıyla değiştiririz.", file: "ECommerceApi.Tests/IntegrationTests/ProductsApiTests.cs", language: "csharp", code: String.raw`public class ProductsApiTests : IClassFixture<WebApplicationFactory<Program>>
-{
-    private readonly HttpClient _client;
-
-    public ProductsApiTests(WebApplicationFactory<Program> factory)
+    // Uygulama SQLite ile calisir -> migration'lari uygula.
+    // Integration testlerde saglayici InMemory'ye cevrilir; orada semayi
+    // model uzerinden olusturmak yeterlidir.
+    if (dbContext.Database.IsRelational())
     {
-        var testFactory = factory.WithWebHostBuilder(builder =>
-        {
-            builder.ConfigureServices(services =>
-            {
-                var descriptor = services.SingleOrDefault(d =>
-                    d.ServiceType == typeof(DbContextOptions<BootcampDbContext>));
-                if (descriptor is not null) services.Remove(descriptor);
+        dbContext.Database.Migrate();
+    }
+    else
+    {
+        dbContext.Database.EnsureCreated();
+    }
+}
 
-                services.AddDbContext<BootcampDbContext>(options =>
-                    options.UseInMemoryDatabase("TestDatabase"));
-            });
-        });
-        _client = testFactory.CreateClient();
+app.Run();
+
+// WebApplicationFactory<Program> bu tipe erisebilsin diye public hale getiriyoruz.
+public partial class Program { }` },
+      { title: "ProductService unit testini kur", why: "Repository mock'lanır; veritabanına gidilmeden servisin mapping ve null davranışı doğrulanır.", file: "ECommerceApi.Tests/UnitTests/ProductServiceTests.cs", language: "csharp", code: String.raw`public class ProductServiceTests
+{
+    private readonly Mock<IProductRepository> _repository = new();
+    private readonly ProductService _sut; // sut = System Under Test
+
+    public ProductServiceTests()
+    {
+        _sut = new ProductService(_repository.Object, NullLogger<ProductService>.Instance);
     }
 
     [Fact]
-    public async Task GetProducts_ShouldReturnOk()
+    public async Task GetByIdAsync_UrunVarsa_DtoDoner()
     {
-        var response = await _client.GetAsync("/api/products");
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        // Arrange
+        _repository
+            .Setup(r => r.GetByIdAsync(1))
+            .ReturnsAsync(new ProductEntity { Id = 1, Name = "Laptop", Price = 25000, Stock = 10 });
+
+        // Act
+        var result = await _sut.GetByIdAsync(1);
+
+        // Assert
+        result.Should().NotBeNull();
+        result!.Id.Should().Be(1);
+        result.Name.Should().Be("Laptop");
+    }
+
+    [Fact]
+    public async Task GetByIdAsync_UrunYoksa_NullDoner()
+    {
+        _repository.Setup(r => r.GetByIdAsync(999)).ReturnsAsync((ProductEntity?)null);
+
+        var result = await _sut.GetByIdAsync(999);
+
+        result.Should().BeNull();
     }
 }` },
-    { title: "Testleri çalıştır", why: "Birim ve entegrasyon testlerinin tamamını aynı komutla derleyip çalıştırırız.", file: "Terminal", language: "bash", code: String.raw`dotnet test
+      { title: "Verify ve Theory ile derinleş", why: "Dönen değer doğru olup yan etki yanlış olabilir; Verify etkileşimi, Theory ise aynı testi farklı verilerle doğrular.", file: "ECommerceApi.Tests/UnitTests/ProductServiceTests.cs", language: "csharp", code: String.raw`[Fact]
+public async Task DeleteAsync_UrunYoksa_FalseDonerVeSilmeyiDenemez()
+{
+    _repository.Setup(r => r.GetByIdAsync(999)).ReturnsAsync((ProductEntity?)null);
+
+    var result = await _sut.DeleteAsync(999);
+
+    result.Should().BeFalse();
+    _repository.Verify(r => r.SoftDeleteAsync(It.IsAny<int>()), Times.Never);
+}
+
+[Fact]
+public async Task DeleteAsync_UrunVarsa_SoftDeleteCagrilir()
+{
+    _repository.Setup(r => r.GetByIdAsync(1))
+        .ReturnsAsync(new ProductEntity { Id = 1, Name = "Laptop" });
+
+    var result = await _sut.DeleteAsync(1);
+
+    result.Should().BeTrue();
+    _repository.Verify(r => r.SoftDeleteAsync(1), Times.Once);
+}
+
+[Theory]
+[InlineData("Yeni Ad", "Yeni Ad")]   // alan gonderildi   -> guncellenir
+[InlineData(null, "Eski Ad")]        // alan gonderilmedi -> korunur
+public async Task UpdateAsync_GonderilmeyenAlan_MevcutDegeriKorur(string? gelenAd, string beklenenAd)
+{
+    _repository.Setup(r => r.GetByIdAsync(1))
+        .ReturnsAsync(new ProductEntity { Id = 1, Name = "Eski Ad", Price = 100, Stock = 5 });
+
+    var result = await _sut.UpdateAsync(1, new UpdateProductDto { Name = gelenAd });
+
+    result!.Name.Should().Be(beklenenAd);
+    result.Price.Should().Be(100); // dokunulmayan alan degismedi
+}` },
+      { title: "Controller sözleşmesini test et", why: "Controller iş kuralı değil HTTP cevabı üretir; bu API 404 için NotFound değil ProblemDetails döner.", file: "ECommerceApi.Tests/UnitTests/ProductsControllerTests.cs", language: "csharp", code: String.raw`[Fact]
+public async Task GetById_UrunYoksa_404ProblemDetailsDoner()
+{
+    _service.Setup(s => s.GetByIdAsync(999)).ReturnsAsync((ProductDto?)null);
+
+    var result = await _sut.GetById(999);
+
+    // Controller NotFound() degil Problem(...) cagiriyor -> ObjectResult + ProblemDetails
+    var objectResult = result.Result.Should().BeOfType<ObjectResult>().Subject;
+    objectResult.StatusCode.Should().Be(404);
+
+    var problem = objectResult.Value.Should().BeOfType<ProblemDetails>().Subject;
+    problem.Title.Should().Be("Ürün bulunamadı");
+    problem.Detail.Should().Contain("999");
+}
+
+[Fact]
+public async Task Create_GecerliDto_201VeLocationBilgisiDoner()
+{
+    var dto = new CreateProductDto { Name = "Mekanik Klavye", Price = 1500, Stock = 30 };
+    _service.Setup(s => s.CreateAsync(dto))
+        .ReturnsAsync(new ProductDto { Id = 7, Name = dto.Name, Price = dto.Price });
+
+    var result = await _sut.Create(dto);
+
+    var created = result.Result.Should().BeOfType<CreatedAtActionResult>().Subject;
+    created.StatusCode.Should().Be(201);
+    created.ActionName.Should().Be(nameof(ProductsController.GetById));
+    created.RouteValues!["id"].Should().Be(7);
+}` },
+      { title: "Test fabrikasını hazırla", why: "Gerçek pipeline ayakta kalır; yalnızca veri katmanı her test sınıfına özel izole InMemory veritabanıyla değiştirilir.", file: "ECommerceApi.Tests/IntegrationTests/CustomWebApplicationFactory.cs", language: "csharp", code: String.raw`public class CustomWebApplicationFactory : WebApplicationFactory<Program>
+{
+    private readonly string _databaseName = $"ECommerceTestDb_{Guid.NewGuid()}";
+
+    protected override void ConfigureWebHost(IWebHostBuilder builder)
+    {
+        builder.UseEnvironment("Testing");
+
+        builder.ConfigureServices(services =>
+        {
+            // 1. Uygulamanin kaydettigi SQLite yapilandirmasini kaldir.
+            var descriptor = services.SingleOrDefault(
+                d => d.ServiceType == typeof(DbContextOptions<BootcampDbContext>));
+
+            if (descriptor is not null)
+            {
+                services.Remove(descriptor);
+            }
+
+            // 2. Yerine izole bir InMemory veritabani koy (flaky test olmasin).
+            services.AddDbContext<BootcampDbContext>(options =>
+                options.UseInMemoryDatabase(_databaseName));
+        });
+    }
+}` },
+      { title: "Gerçek HTTP testlerini yaz", why: "Routing, middleware, DI kayıtları ve validation ancak uçtan uca çalıştırılınca doğrulanır.", file: "ECommerceApi.Tests/IntegrationTests/ProductsApiTests.cs", language: "csharp", code: String.raw`public class ProductsApiTests : IClassFixture<CustomWebApplicationFactory>
+{
+    private readonly HttpClient _client;
+
+    public ProductsApiTests(CustomWebApplicationFactory factory) => _client = factory.CreateClient();
+
+    [Fact]
+    public async Task GET_products_PageSizeParametresiSayfalamayiUygular()
+    {
+        // GetPagedAsync IQueryable uzerinde calisir; unit testte mock'lanamaz.
+        var response = await _client.GetAsync("/api/products?page=1&pageSize=2");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var page = await response.Content.ReadFromJsonAsync<PagedResult<ProductDto>>();
+        page!.PageSize.Should().Be(2);
+        page.Items.Should().HaveCountLessThanOrEqualTo(2);
+    }
+
+    [Fact]
+    public async Task POST_products_UrunuOlusturupArdindanOkunabilirYapar()
+    {
+        var yeniUrun = new CreateProductDto { Name = "Entegrasyon Testi Urunu", Price = 199.90m, Stock = 5 };
+
+        var createResponse = await _client.PostAsJsonAsync("/api/products", yeniUrun);
+        createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        var created = await createResponse.Content.ReadFromJsonAsync<ProductDto>();
+        created!.Id.Should().BeGreaterThan(0);
+
+        var getResponse = await _client.GetAsync($"/api/products/{created.Id}");
+        getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var fetched = await getResponse.Content.ReadFromJsonAsync<ProductDto>();
+        fetched!.Name.Should().Be("Entegrasyon Testi Urunu");
+    }
+
+    [Fact]
+    public async Task POST_products_GecersizDto_400Doner()
+    {
+        // Tek satir dogrulama kodu yazmadik; DTO attribute'lari + [ApiController] devrede.
+        var response = await _client.PostAsJsonAsync("/api/products", new { name = "", price = 0, stock = 1 });
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+}` },
+      { title: "Testleri çalıştır", why: "Unit ve integration suite aynı komutla derlenir ve yürütülür; coverage hedef değil harita olarak okunur.", file: "Terminal", language: "bash", code: String.raw`dotnet test
+
 dotnet test --collect:"XPlat Code Coverage"` }
     ]
   },
