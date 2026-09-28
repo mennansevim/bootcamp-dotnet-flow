@@ -747,7 +747,7 @@ public partial class Program { }` },
     }
 
     [Fact]
-    public async Task GetByIdAsync_UrunVarsa_DtoDoner()
+    public async Task GetByIdAsync_WhenProductExists_ReturnsDto()
     {
         // Arrange
         _repository
@@ -764,7 +764,7 @@ public partial class Program { }` },
     }
 
     [Fact]
-    public async Task GetByIdAsync_UrunYoksa_NullDoner()
+    public async Task GetByIdAsync_WhenProductDoesNotExist_ReturnsNull()
     {
         _repository.Setup(r => r.GetByIdAsync(999)).ReturnsAsync((ProductEntity?)null);
 
@@ -774,7 +774,7 @@ public partial class Program { }` },
     }
 }` },
       { title: "Verify ve Theory ile derinleş", why: "Dönen değer doğru olup yan etki yanlış olabilir; Verify etkileşimi, Theory ise aynı testi farklı verilerle doğrular.", file: "ECommerceApi.Tests/UnitTests/ProductServiceTests.cs", language: "csharp", code: String.raw`[Fact]
-public async Task DeleteAsync_UrunYoksa_FalseDonerVeSilmeyiDenemez()
+public async Task DeleteAsync_WhenProductDoesNotExist_ReturnsFalseAndSkipsDelete()
 {
     _repository.Setup(r => r.GetByIdAsync(999)).ReturnsAsync((ProductEntity?)null);
 
@@ -785,7 +785,7 @@ public async Task DeleteAsync_UrunYoksa_FalseDonerVeSilmeyiDenemez()
 }
 
 [Fact]
-public async Task DeleteAsync_UrunVarsa_SoftDeleteCagrilir()
+public async Task DeleteAsync_WhenProductExists_CallsSoftDelete()
 {
     _repository.Setup(r => r.GetByIdAsync(1))
         .ReturnsAsync(new ProductEntity { Id = 1, Name = "Laptop" });
@@ -799,18 +799,18 @@ public async Task DeleteAsync_UrunVarsa_SoftDeleteCagrilir()
 [Theory]
 [InlineData("Yeni Ad", "Yeni Ad")]   // alan gonderildi   -> guncellenir
 [InlineData(null, "Eski Ad")]        // alan gonderilmedi -> korunur
-public async Task UpdateAsync_GonderilmeyenAlan_MevcutDegeriKorur(string? gelenAd, string beklenenAd)
+public async Task UpdateAsync_WhenFieldOmitted_KeepsExistingValue(string? incomingName, string expectedName)
 {
     _repository.Setup(r => r.GetByIdAsync(1))
         .ReturnsAsync(new ProductEntity { Id = 1, Name = "Eski Ad", Price = 100, Stock = 5 });
 
-    var result = await _sut.UpdateAsync(1, new UpdateProductDto { Name = gelenAd });
+    var result = await _sut.UpdateAsync(1, new UpdateProductDto { Name = incomingName });
 
-    result!.Name.Should().Be(beklenenAd);
+    result!.Name.Should().Be(expectedName);
     result.Price.Should().Be(100); // dokunulmayan alan degismedi
 }` },
       { title: "Controller sözleşmesini test et", why: "Controller iş kuralı değil HTTP cevabı üretir; bu API 404 için NotFound değil ProblemDetails döner.", file: "ECommerceApi.Tests/UnitTests/ProductsControllerTests.cs", language: "csharp", code: String.raw`[Fact]
-public async Task GetById_UrunYoksa_404ProblemDetailsDoner()
+public async Task GetById_WhenProductDoesNotExist_ReturnsProblemDetailsWith404()
 {
     _service.Setup(s => s.GetByIdAsync(999)).ReturnsAsync((ProductDto?)null);
 
@@ -826,7 +826,7 @@ public async Task GetById_UrunYoksa_404ProblemDetailsDoner()
 }
 
 [Fact]
-public async Task Create_GecerliDto_201VeLocationBilgisiDoner()
+public async Task Create_WithValidDto_ReturnsCreatedWithLocation()
 {
     var dto = new CreateProductDto { Name = "Mekanik Klavye", Price = 1500, Stock = 30 };
     _service.Setup(s => s.CreateAsync(dto))
@@ -871,7 +871,7 @@ public async Task Create_GecerliDto_201VeLocationBilgisiDoner()
     public ProductsApiTests(CustomWebApplicationFactory factory) => _client = factory.CreateClient();
 
     [Fact]
-    public async Task GET_products_PageSizeParametresiSayfalamayiUygular()
+    public async Task GetProducts_WithPageSize_AppliesPaging()
     {
         // GetPagedAsync IQueryable uzerinde calisir; unit testte mock'lanamaz.
         var response = await _client.GetAsync("/api/products?page=1&pageSize=2");
@@ -884,7 +884,7 @@ public async Task Create_GecerliDto_201VeLocationBilgisiDoner()
     }
 
     [Fact]
-    public async Task POST_products_UrunuOlusturupArdindanOkunabilirYapar()
+    public async Task CreateProduct_ThenGetById_ReturnsCreatedProduct()
     {
         var yeniUrun = new CreateProductDto { Name = "Entegrasyon Testi Urunu", Price = 199.90m, Stock = 5 };
 
@@ -902,7 +902,7 @@ public async Task Create_GecerliDto_201VeLocationBilgisiDoner()
     }
 
     [Fact]
-    public async Task POST_products_GecersizDto_400Doner()
+    public async Task CreateProduct_WithInvalidDto_ReturnsBadRequest()
     {
         // Tek satir dogrulama kodu yazmadik; DTO attribute'lari + [ApiController] devrede.
         var response = await _client.PostAsJsonAsync("/api/products", new { name = "", price = 0, stock = 1 });
