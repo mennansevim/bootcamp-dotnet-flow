@@ -842,7 +842,21 @@ rm ECommerceApi.Tests/UnitTest1.cs
 #
 # -p sayesinde klasör zaten varsa mkdir hata vermeden devam eder.
 mkdir -p ECommerceApi.Tests/UnitTests ECommerceApi.Tests/IntegrationTests` },
-      { title: "Program sınıfını teste aç", why: "Top-level statements ile üretilen Program internal'dır; ayrıca InMemory sağlayıcıda migration çalıştırılamaz.", file: "ECommerceApi/Program.cs", language: "csharp", code: String.raw`using (var scope = app.Services.CreateScope())
+      { title: "Program sınıfını teste aç", why: "Top-level statements ile üretilen Program internal'dır; ayrıca InMemory sağlayıcıda migration çalıştırılamaz.", file: "ECommerceApi/Program.cs", language: "csharp", code: String.raw`/*
+Test projesine geçmeden önce API tarafında iki küçük dokunuş yapıyoruz.
+Burada test kodu yazmıyoruz; sadece uygulamayı test edilebilir hale getiriyoruz.
+
+1) Veritabanı hazırlığı:
+   SQLite'ta migration'ları uyguluyoruz, InMemory'de EnsureCreated diyoruz.
+
+2) public partial class Program:
+   WebApplicationFactory'nin Program sınıfına erişebilmesi için.
+
+İkisi de uygulamanın normal çalışmasını değiştirmiyor.
+Uygulama yine SQLite ile, yine aynı şekilde ayağa kalkıyor.
+*/
+
+using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<BootcampDbContext>();
 
@@ -873,11 +887,50 @@ WebApplicationFactory'nin Program sınıfına erişebilmesi için
 Program'ı public partial hale getiriyoruz.
 */
 public partial class Program { }` },
-      { title: "ProductService unit testini kur", why: "Repository mock'lanır; veritabanına gidilmeden servisin mapping ve null davranışı doğrulanır.", file: "ECommerceApi.Tests/UnitTests/ProductServiceTests.cs", language: "csharp", code: String.raw`public class ProductServiceTests
+      { title: "ProductService unit testini kur", why: "Repository mock'lanır; veritabanına gidilmeden servisin mapping ve null davranışı doğrulanır.", file: "ECommerceApi.Tests/UnitTests/ProductServiceTests.cs", language: "csharp", code: String.raw`/*
+Önce neyi test edeceğimize karar verelim.
+
+ProductService'te 8 public metot var:
+GetAllAsync, GetByIdAsync, CreateAsync, UpdateAsync, DeleteAsync,
+GetLowStockAsync, GetPagedAsync ve SearchAsync.
+
+Hepsine aynı şekilde test yazmıyoruz.
+Kendimize şunu soruyoruz: bu metodun içinde bir karar ya da kural var mı?
+
+Unit test ile test edeceklerimiz:
+- GetByIdAsync: Ürün varsa DTO'ya çeviriyor mu, yoksa null dönüyor mu?
+- DeleteAsync: Ürün yoksa silmeyi hiç denemiyor mu, varsa SoftDelete çağırıyor mu?
+- UpdateAsync: Gönderilmeyen alanlar eski değerini koruyor mu?
+- CreateAsync: DTO'yu doğru entity'ye çevirip repository'ye veriyor mu?
+
+Unit test ile test edemediklerimiz:
+- GetPagedAsync ve SearchAsync repository'den IQueryable alıp
+  sorguyu veritabanında çalıştırıyor.
+  Mock bu sorguyu gerçekten çalıştıramaz.
+  Bunları birazdan integration testte gerçek HTTP ile deneyeceğiz.
+
+Şimdilik atladıklarımız:
+- GetAllAsync ve GetLowStockAsync repository'den geleni sadece DTO'ya çeviriyor.
+  İçlerinde bir karar yok, önceliğimiz düşük.
+
+Bu dosyada toplam 6 test metodu olacak.
+Bu adımda ilk ikisini yazıyoruz: GetByIdAsync için ürün var ve ürün yok senaryoları.
+Delete ve Update testleri bir sonraki adımda geliyor.
+CreateAsync testi branch'te hazır, zaman kalırsa birlikte bakarız.
+*/
+
+public class ProductServiceTests
 {
-    private readonly Mock<IProductRepository> _repository = new();
+    private readonly Mock<IProductRepository> _repository = new(); /* sahte repository, ne döneceğini her testte biz söyleyeceğiz */
     private readonly ProductService _sut; /* sut = System Under Test, yani şu an test ettiğimiz sınıf */
 
+    /*
+    xUnit her test metodu için bu sınıfı baştan oluşturuyor.
+    Yani constructor her testten önce tekrar çalışıyor
+    ve her test tertemiz bir mock ile başlıyor.
+
+    Logger'ı test etmiyoruz; NullLogger hiçbir şey yazmayan hazır bir logger.
+    */
     public ProductServiceTests()
     {
         _sut = new ProductService(
@@ -939,7 +992,30 @@ public partial class Program { }` },
         result.Should().BeNull();
     }
 }` },
-      { title: "Verify ve Theory ile derinleş", why: "Dönen değer doğru olup yan etki yanlış olabilir; Verify etkileşimi, Theory ise aynı testi farklı verilerle doğrular.", file: "ECommerceApi.Tests/UnitTests/ProductServiceTests.cs", language: "csharp", code: String.raw`[Fact]
+      { title: "Verify ve Theory ile derinleş", why: "Dönen değer doğru olup yan etki yanlış olabilir; Verify etkileşimi, Theory ise aynı testi farklı verilerle doğrular.", file: "ECommerceApi.Tests/UnitTests/ProductServiceTests.cs", language: "csharp", code: String.raw`/*
+Aynı ProductServiceTests sınıfına üç test daha ekliyoruz.
+Bu adımdaki yeni kavramlar Verify ve Theory.
+
+- DeleteAsync_WhenProductDoesNotExist_ReturnsFalseAndSkipsDelete:
+  Ürün yoksa false dönüyor mu ve silme hiç denenmiyor mu?
+
+- DeleteAsync_WhenProductExists_CallsSoftDelete:
+  Ürün varsa true dönüyor mu ve SoftDelete tam bir kere çağrılıyor mu?
+
+- UpdateAsync_WhenFieldOmitted_KeepsExistingValue:
+  Tek bir test, iki farklı veriyle iki kez çalışıyor.
+
+Neden Verify?
+DeleteAsync bize sadece true ya da false dönüyor.
+Asıl iş, yani silme, repository'de oluyor.
+Dönen değere bakmak yetmez; doğru metodun doğru sayıda çağrıldığını da görmemiz lazım.
+
+Neden Theory?
+Aynı testi iki kez kopyalamak yerine, değişen kısmı InlineData ile parametre olarak veriyoruz.
+Test Explorer'da bu tek metot iki ayrı test olarak görünüyor.
+*/
+
+[Fact]
 public async Task DeleteAsync_WhenProductDoesNotExist_ReturnsFalseAndSkipsDelete()
 {
     /*
@@ -1031,7 +1107,31 @@ public async Task UpdateAsync_WhenFieldOmitted_KeepsExistingValue(
     */
     result.Price.Should().Be(100);
 }` },
-      { title: "Controller sözleşmesini test et", why: "Controller iş kuralı değil HTTP cevabı üretir; bu API 404 için NotFound değil ProblemDetails döner.", file: "ECommerceApi.Tests/UnitTests/ProductsControllerTests.cs", language: "csharp", code: String.raw`[Fact]
+      { title: "Controller sözleşmesini test et", why: "Controller iş kuralı değil HTTP cevabı üretir; bu API 404 için NotFound değil ProblemDetails döner.", file: "ECommerceApi.Tests/UnitTests/ProductsControllerTests.cs", language: "csharp", code: String.raw`/*
+Şimdi bir katman yukarı çıkıyoruz: ProductsController.
+Dosyamız UnitTests/ProductsControllerTests.cs.
+
+Burada iş kuralını test etmiyoruz, o ProductService'in işiydi.
+Controller'da test ettiğimiz şey HTTP sözleşmesi:
+Hangi durumda hangi status code ve hangi cevap dönüyor?
+
+Sınıfın kurulumu ProductServiceTests ile aynı mantıkta:
+_service sahte bir IProductService,
+_sut da bu sahte servisi alan ProductsController.
+
+Controller'daki metotlar ve beklediğimiz cevaplar:
+- GetById: Ürün varsa 200 OK, yoksa 404 ProblemDetails.
+- Create: 201 Created ve yeni ürünün adresi.
+- Delete: Ürün varsa 204 NoContent, yoksa 404 NotFound.
+- GetAll: Sayfalama gerçek veritabanı istediği için integration testte deneyeceğiz.
+- Update: Bu oturumda yazmıyoruz; aynı kalıpla ödev olarak denenebilir.
+
+Bu dosyada 5 test var.
+Bu adımda en öğretici ikisine odaklanıyoruz: 404 ProblemDetails ve 201 Created.
+Diğer üçü, yani 200 OK ile Delete'in 204 ve 404 senaryoları, branch'te hazır.
+*/
+
+[Fact]
 public async Task GetById_WhenProductDoesNotExist_ReturnsProblemDetailsWith404()
 {
     /*
@@ -1108,7 +1208,25 @@ public async Task Create_WithValidDto_ReturnsCreatedWithLocation()
     created.ActionName.Should().Be(nameof(ProductsController.GetById));
     created.RouteValues!["id"].Should().Be(7);
 }` },
-      { title: "Test fabrikasını hazırla", why: "Gerçek pipeline ayakta kalır; yalnızca veri katmanı her test sınıfına özel izole InMemory veritabanıyla değiştirilir.", file: "ECommerceApi.Tests/IntegrationTests/CustomWebApplicationFactory.cs", language: "csharp", code: String.raw`public class CustomWebApplicationFactory : WebApplicationFactory<Program>
+      { title: "Test fabrikasını hazırla", why: "Gerçek pipeline ayakta kalır; yalnızca veri katmanı her test sınıfına özel izole InMemory veritabanıyla değiştirilir.", file: "ECommerceApi.Tests/IntegrationTests/CustomWebApplicationFactory.cs", language: "csharp", code: String.raw`/*
+Integration testlere geçiyoruz.
+Bu sefer hiçbir şeyi mock'lamayacağız; API'yi gerçekten ayağa kaldıracağız.
+
+Tek bir sorunumuz var: veritabanı.
+Uygulama normalde SQLite dosyasına yazıyor, testlerin oraya dokunmasını istemiyoruz.
+
+Bu sınıfın tek görevi bu:
+WebApplicationFactory'den türüyor ve uygulamayı kurarken sadece veritabanı kaydını değiştiriyor.
+Routing, middleware, controller, servis, repository, hepsi gerçek kalıyor.
+
+İçinde tek bir metot var: ConfigureWebHost.
+Üç şey yapıyor:
+1) Ortamı Testing yapıyor.
+2) SQLite DbContext kaydını siliyor.
+3) Yerine InMemory DbContext ekliyor.
+*/
+
+public class CustomWebApplicationFactory : WebApplicationFactory<Program>
 {
     /*
     Her test factory'sine farklı bir database adı veriyoruz.
@@ -1154,7 +1272,34 @@ public async Task Create_WithValidDto_ReturnsCreatedWithLocation()
         });
     }
 }` },
-      { title: "Gerçek HTTP testlerini yaz", why: "Routing, middleware, DI kayıtları ve validation ancak uçtan uca çalıştırılınca doğrulanır.", file: "ECommerceApi.Tests/IntegrationTests/ProductsApiTests.cs", language: "csharp", code: String.raw`public class ProductsApiTests :
+      { title: "Gerçek HTTP testlerini yaz", why: "Routing, middleware, DI kayıtları ve validation ancak uçtan uca çalıştırılınca doğrulanır.", file: "ECommerceApi.Tests/IntegrationTests/ProductsApiTests.cs", language: "csharp", code: String.raw`/*
+Şimdi factory'yi kullanarak gerçek HTTP testleri yazıyoruz.
+Dosyamız IntegrationTests/ProductsApiTests.cs.
+
+IClassFixture<CustomWebApplicationFactory> şunu söylüyor:
+Bu sınıftaki bütün testler için factory bir kez oluşturulsun ve paylaşılsın.
+API her test için baştan ayağa kalkmıyor, testler hızlı kalıyor.
+Aynı sebeple bu sınıftaki testler aynı InMemory veritabanını görüyor.
+
+Veritabanı boş da başlamıyor.
+Program.cs'teki EnsureCreated, DbContext'teki seed ürünleri de ekliyor.
+
+Bu dosyada 5 test var, bu adımda 3'ünü yazıyoruz:
+- GetProducts_WithPageSize_AppliesPaging:
+  Unit testte yapamadığımız sayfalamayı burada deniyoruz.
+- CreateProduct_ThenGetById_ReturnsCreatedProduct:
+  POST ile oluşturuyoruz, GET ile geri okuyoruz.
+- CreateProduct_WithInvalidDto_ReturnsBadRequest:
+  Hatalı istek 400 dönüyor mu?
+
+Branch'teki diğer ikisi:
+- GetProducts_ReturnsSeededProductsAsPagedResult:
+  Seed ürünler sayfalı sonuç olarak geliyor mu?
+- GetProductById_WhenIdDoesNotExist_ReturnsProblemDetailsWith404:
+  Controller testindeki 404'ü bu sefer gerçek HTTP ile doğruluyor.
+*/
+
+public class ProductsApiTests :
     IClassFixture<CustomWebApplicationFactory>
 {
     private readonly HttpClient _client;
@@ -1293,6 +1438,10 @@ public async Task Create_WithValidDto_ReturnsCreatedWithLocation()
 #
 # Eğer bir test patlarsa hangi testin neden patladığını
 # çıktıdan görebiliriz.
+#
+# Sadece bu sayfadaki testleri yazdıysak 11 test görmemiz lazım.
+# Branch'in tamamında 16 test metodu var;
+# Theory iki veriyle iki kez çalıştığı için özet 17 test diyecek.
 dotnet test
 
 # Bir de coverage tarafına bakalım.
