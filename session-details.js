@@ -846,14 +846,14 @@ mkdir -p ECommerceApi.Tests/UnitTests ECommerceApi.Tests/IntegrationTests` },
 Test projesine geçmeden önce API tarafında iki küçük dokunuş yapıyoruz.
 Burada test kodu yazmıyoruz; sadece uygulamayı test edilebilir hale getiriyoruz.
 
-1) Veritabanı hazırlığı:
-   SQLite'ta migration'ları uyguluyoruz, InMemory'de EnsureCreated diyoruz.
+1) S7'den gelen Migrate() satırını bir kontrolün içine alıyoruz,
+   çünkü testlerde kullanacağımız InMemory veritabanı migration desteklemiyor.
 
-2) public partial class Program:
-   WebApplicationFactory'nin Program sınıfına erişebilmesi için.
+2) Dosyanın en altına public partial class Program ekliyoruz,
+   çünkü WebApplicationFactory'nin Program sınıfına erişmesi gerekiyor.
 
-İkisi de uygulamanın normal çalışmasını değiştirmiyor.
-Uygulama yine SQLite ile, yine aynı şekilde ayağa kalkıyor.
+Uygulamanın normal çalışması değişmiyor.
+Yine SQLite ile, yine migration'larla ayağa kalkıyor.
 */
 
 using (var scope = app.Services.CreateScope())
@@ -861,12 +861,17 @@ using (var scope = app.Services.CreateScope())
     var dbContext = scope.ServiceProvider.GetRequiredService<BootcampDbContext>();
 
     /*
-    Normal uygulamada SQLite kullanıyoruz.
-    O yüzden relational bir database varsa migration'ları uyguluyoruz.
+    S7'de burada tek satır vardı: dbContext.Database.Migrate();
+    Uygulama SQLite ile çalıştığı için bu yeterliydi.
 
-    Integration testlerde ise database'i InMemory'ye çevireceğiz.
-    InMemory tarafında migration çalıştırmamıza gerek yok.
-    Model üzerinden database'i oluşturmak yeterli.
+    Sorun şu: integration testlerde SQLite'ı çıkarıp yerine InMemory koyacağız.
+    Migrate() sadece relational, yani SQL konuşan veritabanlarında çalışır.
+    InMemory'de çağırırsak test daha API ayağa kalkarken hata verir.
+
+    O yüzden araya bir kontrol koyuyoruz:
+    - Veritabanı relational ise, yani SQLite ise, eskisi gibi Migrate() diyoruz.
+    - Değilse, yani testteki InMemory ise, EnsureCreated() ile
+      tabloları migration olmadan doğrudan modelden oluşturuyoruz.
     */
     if (dbContext.Database.IsRelational())
     {
@@ -883,8 +888,11 @@ app.Run();
 /*
 Birazdan integration testlerde WebApplicationFactory<Program> kullanacağız.
 
-WebApplicationFactory'nin Program sınıfına erişebilmesi için
-Program'ı public partial hale getiriyoruz.
+Top-level statements kullandığımız için derleyicinin bizim yerimize ürettiği
+Program sınıfı internal; test projesi onu göremiyor.
+
+public partial ile aynı sınıfa "sen public'sin" diyoruz.
+Böylece WebApplicationFactory, Program sınıfına erişebiliyor.
 */
 public partial class Program { }` },
       { title: "ProductService unit testini kur", why: "Repository mock'lanır; veritabanına gidilmeden servisin mapping ve null davranışı doğrulanır.", file: "ECommerceApi.Tests/UnitTests/ProductServiceTests.cs", language: "csharp", code: String.raw`/*
@@ -1241,6 +1249,9 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
     {
         /*
         Uygulamayı Testing environment'ında ayağa kaldırıyoruz.
+
+        Bunu yazmazsak WebApplicationFactory varsayılan olarak Development kullanır.
+        Testing'de, sadece geliştirmede açılan Swagger gibi parçalar devreye girmiyor.
         */
         builder.UseEnvironment("Testing");
 
@@ -1399,11 +1410,13 @@ public class ProductsApiTests :
 
         Name boş, price da 0.
 
-        Dikkat ederseniz controller içerisinde ayrıca validation
-        çağırmıyoruz.
+        CreateProductDto'da Name için [Required], Price için [Range(0.01, ...)] var.
+        İkisi de bu istekte bozuluyor.
 
-        DTO üzerindeki validation attribute'ları ve [ApiController]
-        bunu bizim için otomatik yapıyor.
+        Controller'daki Create metodunda bir ModelState kontrolü görüyoruz
+        ama istek oraya hiç ulaşmıyor.
+        [ApiController] attribute'u DTO'yu action çalışmadan önce kontrol ediyor
+        ve hata varsa 400'ü kendisi dönüyor.
         */
         var response =
             await _client.PostAsJsonAsync(
