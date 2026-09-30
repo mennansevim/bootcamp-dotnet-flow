@@ -704,24 +704,156 @@ public async Task<ActionResult<TransferResponseDto>> Transfer(
     ],
         checklist: ["xUnit test projesini net8.0 hedefiyle oluştur ve solution'a ekle.", "Moq, FluentAssertions 7, Mvc.Testing ve EF InMemory paketlerini kur.", "Program sınıfını public partial yap, migration adımını IsRelational ile koru.", "ProductService için Fact, Theory ve Verify örnekleriyle unit test yaz.", "ProductsController'ın 200 / 404 ProblemDetails / 201 / 204 sözleşmesini doğrula.", "CustomWebApplicationFactory ile izole InMemory ortamı kur.", "Gerçek HTTP üzerinden sayfalama, uçtan uca oluşturma ve 400 senaryolarını test et.", "dotnet test ile tüm testleri çalıştır, isteğe bağlı coverage raporu al."],
     code: [
-      { title: "Test projesini ve paketleri kur", why: "Test kodu canlıya çıkan derlemeye karışmasın diye ayrı bir assembly açılır; referans tek yönlüdür.", file: "Terminal", language: "bash", code: String.raw`dotnet new xunit -n ECommerceApi.Tests -f net8.0
+      { title: "Test projesini ve paketleri kur", why: "Test kodu canlıya çıkan derlemeye karışmasın diye ayrı bir assembly açılır; referans tek yönlüdür.", file: "Terminal", language: "bash", code: String.raw`# Arkadaşlar, bütün komutları solution'ın olduğu ana klasörde çalıştırıyoruz.
+# Yani ECommerceSolution.sln dosyasını gördüğümüz klasörde olmamız lazım.
+#
+# Yanlış klasörde olursak birazdan yazacağımız path'ler çalışmaz.
+# O yüzden başlamadan önce bir kontrol edelim.
+
+# Şu anda elimizde bir test projesi yok.
+# İlk olarak test projemizi oluşturalım.
+#
+# dotnet new xunit diyerek .NET'in hazır xUnit template'ini kullanıyoruz.
+#
+# -n ile projemizin adını ECommerceApi.Tests yapıyoruz.
+# Bu komut aynı isimde bir klasör de oluşturacak.
+#
+# İçerisine csproj dosyası, örnek bir UnitTest1.cs
+# ve xUnit'in çalışması için gereken temel paketler gelecek.
+#
+# Buradaki -f net8.0 önemli.
+# API'miz .NET 8 olduğu için test projemizin de .NET 8 olmasını istiyoruz.
+#
+# Bunu özellikle belirtmezsek, makinede daha yeni bir SDK varsa
+# projeyi örneğin net10.0 ile oluşturabilir.
+dotnet new xunit -n ECommerceApi.Tests -f net8.0
+
+# Test projemiz oluştu ama solution henüz bu projeyi tanımıyor.
+#
+# dotnet sln add ile oluşturduğumuz test projesini solution'a ekliyoruz.
+#
+# Bundan sonra solution'ın ana klasöründe dotnet build veya dotnet test
+# çalıştırdığımızda test projemiz de işin içine girecek.
+#
+# Rider'da da API projesinin yanında test projemizi görebileceğiz.
 dotnet sln add ECommerceApi.Tests/ECommerceApi.Tests.csproj
+
+# Şimdi test projemizin, test edeceği API projesini tanıması gerekiyor.
+#
+# Mesela ProductService'e veya ProductsController'a erişmek istiyorsak
+# test projesinden API projesine reference vermemiz lazım.
+#
+# Burada önemli bir nokta var:
+# Bağımlılık tek yönlü.
+#
+# Test projesi API'yi biliyor ama API projesi test projesini bilmiyor.
+#
+# Dolayısıyla production'a çıkan uygulamanın içerisine
+# test kodlarımız karışmıyor.
 dotnet add ECommerceApi.Tests reference ECommerceApi/ECommerceApi.csproj
 
+# Şimdi test yazarken kullanacağımız birkaç paketi ekleyelim.
+#
+# Versiyonları da özellikle sabitliyoruz.
+# Böylece herkesin makinesinde aynı paket versiyonlarıyla çalışmış oluyoruz.
+
+# İlk paketimiz Moq.
+#
+# Unit test yazarken ProductService'i mümkün olduğunca tek başına
+# test etmek istiyoruz.
+#
+# Ama ProductService repository'ye,
+# repository de normalde veritabanına bağlı.
+#
+# Biz burada gerçek veritabanına gitmek istemiyoruz.
+#
+# Moq ile sahte bir repository oluşturabiliyoruz.
+#
+# Mesela:
+# "GetByIdAsync çağrılırsa bana şu ürünü dön"
+# diyebiliyoruz.
+#
+# Böylece veritabanıyla uğraşmadan sadece
+# ProductService'in davranışını test ediyoruz.
 dotnet add ECommerceApi.Tests package Moq --version 4.20.72
+
+# İkinci paketimiz FluentAssertions.
+#
+# Bu paket assertion'ları daha okunabilir yazmamızı sağlıyor.
+#
+# Mesela:
+#
+# Assert.Equal(1, result.Id)
+#
+# yerine:
+#
+# result.Id.Should().Be(1)
+#
+# yazabiliyoruz.
+#
+# Okuması daha rahat oluyor.
+# Test patladığında verdiği hata mesajları da genelde daha anlaşılır.
+#
+# Burada 7.0.0 kullanıyoruz.
+# Çünkü 8. sürümden itibaren lisans tarafında ticari kullanım için
+# dikkat etmemiz gereken değişiklikler var.
 dotnet add ECommerceApi.Tests package FluentAssertions --version 7.0.0
+
+# Üçüncü paketimiz Microsoft.AspNetCore.Mvc.Testing.
+#
+# Integration test tarafında asıl önemli paketlerden biri bu.
+#
+# İçerisindeki WebApplicationFactory sayesinde API'mizi
+# gerçekten dışarıya bir port açmadan test ortamında ayağa kaldırabiliyoruz.
+#
+# Sonra normal bir HttpClient kullanıp API'ye istek atıyoruz.
+#
+# Yani routing, middleware, model validation gibi parçalar da
+# işin içine giriyor.
+#
+# Bu yüzden controller'ı tek başına test etmekten daha gerçekçi
+# bir senaryo oluşturmuş oluyoruz.
 dotnet add ECommerceApi.Tests package Microsoft.AspNetCore.Mvc.Testing --version 8.0.0
+
+# Son paketimiz EF Core InMemory provider.
+#
+# Integration test sırasında gerçek SQLite veritabanımızı kullanmak istemiyoruz.
+# Çünkü test verileri gerçek database'e karışabilir.
+#
+# Bunun yerine test sırasında bellekte geçici bir database oluşturuyoruz.
+#
+# Test ortamı kapandığında bu database de gidiyor.
+# Diskte herhangi bir test verisi bırakmıyoruz.
 dotnet add ECommerceApi.Tests package Microsoft.EntityFrameworkCore.InMemory --version 8.0.0
 
+# xUnit template'i bize UnitTest1.cs diye örnek bir dosya oluşturmuştu.
+#
+# Bu dosya bizim için bir şey ifade etmiyor.
+# O yüzden siliyoruz.
 rm ECommerceApi.Tests/UnitTest1.cs
+
+# Son olarak testleri iki gruba ayıralım.
+#
+# UnitTests klasörüne tek bir sınıfı veya davranışı
+# izole şekilde test ettiğimiz hızlı testleri koyacağız.
+#
+# IntegrationTests klasörüne ise API'nin daha fazla parçasını
+# birlikte çalıştırdığımız testleri koyacağız.
+#
+# -p sayesinde klasör zaten varsa mkdir hata vermeden devam eder.
 mkdir -p ECommerceApi.Tests/UnitTests ECommerceApi.Tests/IntegrationTests` },
       { title: "Program sınıfını teste aç", why: "Top-level statements ile üretilen Program internal'dır; ayrıca InMemory sağlayıcıda migration çalıştırılamaz.", file: "ECommerceApi/Program.cs", language: "csharp", code: String.raw`using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<BootcampDbContext>();
 
-    // Uygulama SQLite ile calisir -> migration'lari uygula.
-    // Integration testlerde saglayici InMemory'ye cevrilir; orada semayi
-    // model uzerinden olusturmak yeterlidir.
+    /*
+    Normal uygulamada SQLite kullanıyoruz.
+    O yüzden relational bir database varsa migration'ları uyguluyoruz.
+
+    Integration testlerde ise database'i InMemory'ye çevireceğiz.
+    InMemory tarafında migration çalıştırmamıza gerek yok.
+    Model üzerinden database'i oluşturmak yeterli.
+    */
     if (dbContext.Database.IsRelational())
     {
         dbContext.Database.Migrate();
@@ -734,30 +866,56 @@ mkdir -p ECommerceApi.Tests/UnitTests ECommerceApi.Tests/IntegrationTests` },
 
 app.Run();
 
-// WebApplicationFactory<Program> bu tipe erisebilsin diye public hale getiriyoruz.
+/*
+Birazdan integration testlerde WebApplicationFactory<Program> kullanacağız.
+
+WebApplicationFactory'nin Program sınıfına erişebilmesi için
+Program'ı public partial hale getiriyoruz.
+*/
 public partial class Program { }` },
       { title: "ProductService unit testini kur", why: "Repository mock'lanır; veritabanına gidilmeden servisin mapping ve null davranışı doğrulanır.", file: "ECommerceApi.Tests/UnitTests/ProductServiceTests.cs", language: "csharp", code: String.raw`public class ProductServiceTests
 {
     private readonly Mock<IProductRepository> _repository = new();
-    private readonly ProductService _sut; // sut = System Under Test
+    private readonly ProductService _sut; /* sut = System Under Test, yani şu an test ettiğimiz sınıf */
 
     public ProductServiceTests()
     {
-        _sut = new ProductService(_repository.Object, NullLogger<ProductService>.Instance);
+        _sut = new ProductService(
+            _repository.Object,
+            NullLogger<ProductService>.Instance);
     }
 
     [Fact]
     public async Task GetByIdAsync_WhenProductExists_ReturnsDto()
     {
-        // Arrange
+        /*
+        Arrange kısmında test için gerekli ortamı hazırlıyoruz.
+
+        Repository'ye diyoruz ki:
+        GetByIdAsync(1) çağrılırsa bize bu ürünü dön.
+        */
         _repository
             .Setup(r => r.GetByIdAsync(1))
-            .ReturnsAsync(new ProductEntity { Id = 1, Name = "Laptop", Price = 25000, Stock = 10 });
+            .ReturnsAsync(new ProductEntity
+            {
+                Id = 1,
+                Name = "Laptop",
+                Price = 25000,
+                Stock = 10
+            });
 
-        // Act
+        /*
+        Act kısmında gerçekten test etmek istediğimiz metodu çağırıyoruz.
+        */
         var result = await _sut.GetByIdAsync(1);
 
-        // Assert
+        /*
+        Assert kısmında da sonucu kontrol ediyoruz.
+
+        Ürün null olmamalı,
+        Id'si 1 olmalı
+        ve adı Laptop olmalı.
+        */
         result.Should().NotBeNull();
         result!.Id.Should().Be(1);
         result.Name.Should().Be("Laptop");
@@ -766,61 +924,147 @@ public partial class Program { }` },
     [Fact]
     public async Task GetByIdAsync_WhenProductDoesNotExist_ReturnsNull()
     {
-        _repository.Setup(r => r.GetByIdAsync(999)).ReturnsAsync((ProductEntity?)null);
+        /*
+        Bu sefer repository'ye 999 id'li bir ürün olmadığını söylüyoruz.
+        */
+        _repository
+            .Setup(r => r.GetByIdAsync(999))
+            .ReturnsAsync((ProductEntity?)null);
 
         var result = await _sut.GetByIdAsync(999);
 
+        /*
+        Ürün yoksa servisten de null dönmesini bekliyoruz.
+        */
         result.Should().BeNull();
     }
 }` },
       { title: "Verify ve Theory ile derinleş", why: "Dönen değer doğru olup yan etki yanlış olabilir; Verify etkileşimi, Theory ise aynı testi farklı verilerle doğrular.", file: "ECommerceApi.Tests/UnitTests/ProductServiceTests.cs", language: "csharp", code: String.raw`[Fact]
 public async Task DeleteAsync_WhenProductDoesNotExist_ReturnsFalseAndSkipsDelete()
 {
-    _repository.Setup(r => r.GetByIdAsync(999)).ReturnsAsync((ProductEntity?)null);
+    /*
+    Önce olmayan bir ürün senaryosu hazırlıyoruz.
+    999 id'li ürün repository'de yok.
+    */
+    _repository
+        .Setup(r => r.GetByIdAsync(999))
+        .ReturnsAsync((ProductEntity?)null);
 
     var result = await _sut.DeleteAsync(999);
 
+    /*
+    Ürün olmadığı için DeleteAsync false dönmeli.
+
+    Bir de sadece sonucu kontrol etmekle kalmıyoruz.
+    SoftDeleteAsync metodunun hiç çağrılmadığını da doğruluyoruz.
+    */
     result.Should().BeFalse();
-    _repository.Verify(r => r.SoftDeleteAsync(It.IsAny<int>()), Times.Never);
+
+    _repository.Verify(
+        r => r.SoftDeleteAsync(It.IsAny<int>()),
+        Times.Never);
 }
 
 [Fact]
 public async Task DeleteAsync_WhenProductExists_CallsSoftDelete()
 {
-    _repository.Setup(r => r.GetByIdAsync(1))
-        .ReturnsAsync(new ProductEntity { Id = 1, Name = "Laptop" });
+    /*
+    Bu sefer ürün var.
+
+    Repository'den 1 id'li ürünü döndürüyoruz.
+    */
+    _repository
+        .Setup(r => r.GetByIdAsync(1))
+        .ReturnsAsync(new ProductEntity
+        {
+            Id = 1,
+            Name = "Laptop"
+        });
 
     var result = await _sut.DeleteAsync(1);
 
+    /*
+    Silme işleminin başarılı olduğunu
+    ve SoftDeleteAsync'in tam bir kere çağrıldığını kontrol ediyoruz.
+    */
     result.Should().BeTrue();
-    _repository.Verify(r => r.SoftDeleteAsync(1), Times.Once);
+
+    _repository.Verify(
+        r => r.SoftDeleteAsync(1),
+        Times.Once);
 }
 
 [Theory]
-[InlineData("Yeni Ad", "Yeni Ad")]   // alan gonderildi   -> guncellenir
-[InlineData(null, "Eski Ad")]        // alan gonderilmedi -> korunur
-public async Task UpdateAsync_WhenFieldOmitted_KeepsExistingValue(string? incomingName, string expectedName)
+[InlineData("Yeni Ad", "Yeni Ad")]
+[InlineData(null, "Eski Ad")]
+public async Task UpdateAsync_WhenFieldOmitted_KeepsExistingValue(
+    string? incomingName,
+    string expectedName)
 {
-    _repository.Setup(r => r.GetByIdAsync(1))
-        .ReturnsAsync(new ProductEntity { Id = 1, Name = "Eski Ad", Price = 100, Stock = 5 });
+    /*
+    Burada iki farklı durumu aynı test içerisinde deniyoruz.
 
-    var result = await _sut.UpdateAsync(1, new UpdateProductDto { Name = incomingName });
+    Name gönderirsek yeni değer kullanılmalı.
+
+    Name'i null gönderirsek de mevcut değer,
+    yani "Eski Ad" korunmalı.
+    */
+    _repository
+        .Setup(r => r.GetByIdAsync(1))
+        .ReturnsAsync(new ProductEntity
+        {
+            Id = 1,
+            Name = "Eski Ad",
+            Price = 100,
+            Stock = 5
+        });
+
+    var result = await _sut.UpdateAsync(
+        1,
+        new UpdateProductDto { Name = incomingName });
 
     result!.Name.Should().Be(expectedName);
-    result.Price.Should().Be(100); // dokunulmayan alan degismedi
+
+    /*
+    Price'a hiç dokunmadık.
+    O yüzden eski değerinin aynen kalmasını bekliyoruz.
+    */
+    result.Price.Should().Be(100);
 }` },
       { title: "Controller sözleşmesini test et", why: "Controller iş kuralı değil HTTP cevabı üretir; bu API 404 için NotFound değil ProblemDetails döner.", file: "ECommerceApi.Tests/UnitTests/ProductsControllerTests.cs", language: "csharp", code: String.raw`[Fact]
 public async Task GetById_WhenProductDoesNotExist_ReturnsProblemDetailsWith404()
 {
-    _service.Setup(s => s.GetByIdAsync(999)).ReturnsAsync((ProductDto?)null);
+    /*
+    Service'e diyoruz ki 999 id'li ürün sorulursa null dön.
+    Yani ürün bulunamadı senaryosunu oluşturuyoruz.
+    */
+    _service
+        .Setup(s => s.GetByIdAsync(999))
+        .ReturnsAsync((ProductDto?)null);
 
     var result = await _sut.GetById(999);
 
-    // Controller NotFound() degil Problem(...) cagiriyor -> ObjectResult + ProblemDetails
-    var objectResult = result.Result.Should().BeOfType<ObjectResult>().Subject;
+    /*
+    Controller burada direkt NotFound() dönmüyor.
+    Problem(...) kullandığı için elimizde ObjectResult
+    ve onun içerisinde ProblemDetails olmasını bekliyoruz.
+    */
+    var objectResult = result.Result
+        .Should()
+        .BeOfType<ObjectResult>()
+        .Subject;
+
     objectResult.StatusCode.Should().Be(404);
 
-    var problem = objectResult.Value.Should().BeOfType<ProblemDetails>().Subject;
+    var problem = objectResult.Value
+        .Should()
+        .BeOfType<ProblemDetails>()
+        .Subject;
+
+    /*
+    Sadece 404 geldi mi diye bakmıyoruz.
+    Dönen hata içeriğinin de doğru olduğunu kontrol ediyoruz.
+    */
     problem.Title.Should().Be("Ürün bulunamadı");
     problem.Detail.Should().Contain("999");
 }
@@ -828,57 +1072,122 @@ public async Task GetById_WhenProductDoesNotExist_ReturnsProblemDetailsWith404()
 [Fact]
 public async Task Create_WithValidDto_ReturnsCreatedWithLocation()
 {
-    var dto = new CreateProductDto { Name = "Mekanik Klavye", Price = 1500, Stock = 30 };
-    _service.Setup(s => s.CreateAsync(dto))
-        .ReturnsAsync(new ProductDto { Id = 7, Name = dto.Name, Price = dto.Price });
+    /*
+    Geçerli bir ürün oluşturuyoruz.
+    */
+    var dto = new CreateProductDto
+    {
+        Name = "Mekanik Klavye",
+        Price = 1500,
+        Stock = 30
+    };
+
+    _service
+        .Setup(s => s.CreateAsync(dto))
+        .ReturnsAsync(new ProductDto
+        {
+            Id = 7,
+            Name = dto.Name,
+            Price = dto.Price
+        });
 
     var result = await _sut.Create(dto);
 
-    var created = result.Result.Should().BeOfType<CreatedAtActionResult>().Subject;
+    /*
+    REST tarafında create işleminden sonra 201 Created bekliyoruz.
+
+    Aynı zamanda Location bilgisinin hangi endpoint'i gösterdiğini
+    ve oluşturulan ürünün id'sinin route'a doğru yazıldığını kontrol ediyoruz.
+    */
+    var created = result.Result
+        .Should()
+        .BeOfType<CreatedAtActionResult>()
+        .Subject;
+
     created.StatusCode.Should().Be(201);
     created.ActionName.Should().Be(nameof(ProductsController.GetById));
     created.RouteValues!["id"].Should().Be(7);
 }` },
       { title: "Test fabrikasını hazırla", why: "Gerçek pipeline ayakta kalır; yalnızca veri katmanı her test sınıfına özel izole InMemory veritabanıyla değiştirilir.", file: "ECommerceApi.Tests/IntegrationTests/CustomWebApplicationFactory.cs", language: "csharp", code: String.raw`public class CustomWebApplicationFactory : WebApplicationFactory<Program>
 {
-    private readonly string _databaseName = $"ECommerceTestDb_{Guid.NewGuid()}";
+    /*
+    Her test factory'sine farklı bir database adı veriyoruz.
+
+    Böylece testlerin aynı InMemory database'i paylaşarak
+    birbirini etkilemesini istemiyoruz.
+    */
+    private readonly string _databaseName =
+        $"ECommerceTestDb_{Guid.NewGuid()}";
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
+        /*
+        Uygulamayı Testing environment'ında ayağa kaldırıyoruz.
+        */
         builder.UseEnvironment("Testing");
 
         builder.ConfigureServices(services =>
         {
-            // 1. Uygulamanin kaydettigi SQLite yapilandirmasini kaldir.
+            /*
+            Uygulamanın normalde kullandığı SQLite DbContext
+            konfigürasyonunu bulup kaldırıyoruz.
+
+            Çünkü test sırasında gerçek SQLite'a bağlanmak istemiyoruz.
+            */
             var descriptor = services.SingleOrDefault(
-                d => d.ServiceType == typeof(DbContextOptions<BootcampDbContext>));
+                d => d.ServiceType ==
+                     typeof(DbContextOptions<BootcampDbContext>));
 
             if (descriptor is not null)
             {
                 services.Remove(descriptor);
             }
 
-            // 2. Yerine izole bir InMemory veritabani koy (flaky test olmasin).
+            /*
+            SQLite yerine InMemory database ekliyoruz.
+
+            Böylece testler gerçek database'e dokunmadan
+            kendi izole ortamlarında çalışabiliyor.
+            */
             services.AddDbContext<BootcampDbContext>(options =>
                 options.UseInMemoryDatabase(_databaseName));
         });
     }
 }` },
-      { title: "Gerçek HTTP testlerini yaz", why: "Routing, middleware, DI kayıtları ve validation ancak uçtan uca çalıştırılınca doğrulanır.", file: "ECommerceApi.Tests/IntegrationTests/ProductsApiTests.cs", language: "csharp", code: String.raw`public class ProductsApiTests : IClassFixture<CustomWebApplicationFactory>
+      { title: "Gerçek HTTP testlerini yaz", why: "Routing, middleware, DI kayıtları ve validation ancak uçtan uca çalıştırılınca doğrulanır.", file: "ECommerceApi.Tests/IntegrationTests/ProductsApiTests.cs", language: "csharp", code: String.raw`public class ProductsApiTests :
+    IClassFixture<CustomWebApplicationFactory>
 {
     private readonly HttpClient _client;
 
-    public ProductsApiTests(CustomWebApplicationFactory factory) => _client = factory.CreateClient();
+    public ProductsApiTests(CustomWebApplicationFactory factory)
+    {
+        /*
+        Factory üzerinden API'ye istek atabileceğimiz
+        gerçek bir HttpClient oluşturuyoruz.
+        */
+        _client = factory.CreateClient();
+    }
 
     [Fact]
     public async Task GetProducts_WithPageSize_AppliesPaging()
     {
-        // GetPagedAsync IQueryable uzerinde calisir; unit testte mock'lanamaz.
-        var response = await _client.GetAsync("/api/products?page=1&pageSize=2");
+        /*
+        Burada artık service'i mock'lamıyoruz.
+
+        API'ye gerçekten HTTP isteği atıyoruz.
+
+        pageSize=2 verdiğimiz için response içerisinde
+        en fazla iki ürün dönmesini bekliyoruz.
+        */
+        var response =
+            await _client.GetAsync("/api/products?page=1&pageSize=2");
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var page = await response.Content.ReadFromJsonAsync<PagedResult<ProductDto>>();
+        var page =
+            await response.Content
+                .ReadFromJsonAsync<PagedResult<ProductDto>>();
+
         page!.PageSize.Should().Be(2);
         page.Items.Should().HaveCountLessThanOrEqualTo(2);
     }
@@ -886,32 +1195,123 @@ public async Task Create_WithValidDto_ReturnsCreatedWithLocation()
     [Fact]
     public async Task CreateProduct_ThenGetById_ReturnsCreatedProduct()
     {
-        var yeniUrun = new CreateProductDto { Name = "Entegrasyon Testi Urunu", Price = 199.90m, Stock = 5 };
+        /*
+        Burada biraz daha gerçek hayata yakın bir senaryo yapıyoruz.
 
-        var createResponse = await _client.PostAsJsonAsync("/api/products", yeniUrun);
-        createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+        Önce API üzerinden ürünü oluşturacağız.
+        Sonra dönen id ile tekrar GET isteği atıp
+        ürün gerçekten oluşmuş mu kontrol edeceğiz.
+        */
+        var yeniUrun = new CreateProductDto
+        {
+            Name = "Entegrasyon Testi Urunu",
+            Price = 199.90m,
+            Stock = 5
+        };
 
-        var created = await createResponse.Content.ReadFromJsonAsync<ProductDto>();
+        var createResponse =
+            await _client.PostAsJsonAsync(
+                "/api/products",
+                yeniUrun);
+
+        createResponse.StatusCode
+            .Should()
+            .Be(HttpStatusCode.Created);
+
+        var created =
+            await createResponse.Content
+                .ReadFromJsonAsync<ProductDto>();
+
         created!.Id.Should().BeGreaterThan(0);
 
-        var getResponse = await _client.GetAsync($"/api/products/{created.Id}");
-        getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        /*
+        Ürün oluştu.
+        Şimdi aynı ürünü API'den geri isteyelim.
+        */
+        var getResponse =
+            await _client.GetAsync($"/api/products/{created.Id}");
 
-        var fetched = await getResponse.Content.ReadFromJsonAsync<ProductDto>();
+        getResponse.StatusCode
+            .Should()
+            .Be(HttpStatusCode.OK);
+
+        var fetched =
+            await getResponse.Content
+                .ReadFromJsonAsync<ProductDto>();
+
+        /*
+        Dönen ürün gerçekten biraz önce oluşturduğumuz ürün mü,
+        onu kontrol ediyoruz.
+        */
         fetched!.Name.Should().Be("Entegrasyon Testi Urunu");
     }
 
     [Fact]
     public async Task CreateProduct_WithInvalidDto_ReturnsBadRequest()
     {
-        // Tek satir dogrulama kodu yazmadik; DTO attribute'lari + [ApiController] devrede.
-        var response = await _client.PostAsJsonAsync("/api/products", new { name = "", price = 0, stock = 1 });
+        /*
+        Burada özellikle hatalı bir request gönderiyoruz.
 
-        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        Name boş, price da 0.
+
+        Dikkat ederseniz controller içerisinde ayrıca validation
+        çağırmıyoruz.
+
+        DTO üzerindeki validation attribute'ları ve [ApiController]
+        bunu bizim için otomatik yapıyor.
+        */
+        var response =
+            await _client.PostAsJsonAsync(
+                "/api/products",
+                new
+                {
+                    name = "",
+                    price = 0,
+                    stock = 1
+                });
+
+        /*
+        Validation çalıştıysa API'nin 400 Bad Request dönmesini bekliyoruz.
+        */
+        response.StatusCode
+            .Should()
+            .Be(HttpStatusCode.BadRequest);
     }
 }` },
-      { title: "Testleri çalıştır", why: "Unit ve integration suite aynı komutla derlenir ve yürütülür; coverage hedef değil harita olarak okunur.", file: "Terminal", language: "bash", code: String.raw`dotnet test
+      { title: "Testleri çalıştır", why: "Unit ve integration suite aynı komutla derlenir ve yürütülür; coverage hedef değil harita olarak okunur.", file: "Terminal", language: "bash", code: String.raw`# Testleri yazdık.
+# Şimdi bir çalıştırıp bakalım.
+#
+# Solution'ın olduğu ana klasörde dotnet test diyoruz.
+#
+# Bu komut önce gerekli projeleri build ediyor,
+# sonra xUnit testlerimizi çalıştırıyor.
+#
+# Unit testler ve integration testler beraber çalışacak.
+#
+# En sonda da bize bir özet verecek:
+# Kaç test geçti, kaç test kaldı ve testlerin ne kadar sürdüğü gibi.
+#
+# Eğer bir test patlarsa hangi testin neden patladığını
+# çıktıdan görebiliriz.
+dotnet test
 
+# Bir de coverage tarafına bakalım.
+#
+# Bu komut yine aynı testleri çalıştırıyor ama bu sefer
+# testler çalışırken kodun hangi bölümlerinden geçtiğimizi de takip ediyor.
+#
+# Sonuçlar ECommerceApi.Tests/TestResults altında
+# coverage raporu olarak oluşacak.
+#
+# Burada amacımız illa yüzde 90, yüzde 100 coverage yapmak değil.
+#
+# Coverage'ı daha çok bir harita gibi düşünebiliriz.
+#
+# "Benim testlerim kodun hangi taraflarına hiç uğramıyor?"
+# sorusunun cevabını görmek için kullanıyoruz.
+#
+# Özellikle kritik olup hiç test edilmemiş yerler varsa
+# coverage raporundan bunları daha rahat fark edebiliriz.
 dotnet test --collect:"XPlat Code Coverage"` }
     ]
   },
