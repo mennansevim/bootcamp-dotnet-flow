@@ -704,7 +704,7 @@ public async Task<ActionResult<TransferResponseDto>> Transfer(
     ],
         checklist: ["xUnit test projesini net8.0 hedefiyle oluştur ve solution'a ekle.", "Moq, FluentAssertions 7, Mvc.Testing ve EF InMemory paketlerini kur.", "Program sınıfını public partial yap, migration adımını IsRelational ile koru.", "ProductService için Fact, Theory ve Verify örnekleriyle unit test yaz.", "ProductsController'ın 200 / 404 ProblemDetails / 201 / 204 sözleşmesini doğrula.", "CustomWebApplicationFactory ile izole InMemory ortamı kur.", "Gerçek HTTP üzerinden sayfalama, uçtan uca oluşturma ve 400 senaryolarını test et.", "dotnet test ile tüm testleri çalıştır, isteğe bağlı coverage raporu al."],
     code: [
-      { title: "Test projesini ve paketleri kur", why: "Test kodu canlıya çıkan derlemeye karışmasın diye ayrı bir assembly açılır; referans tek yönlüdür.", file: "Terminal", language: "bash", code: String.raw`# Arkadaşlar, bütün komutları solution'ın olduğu ana klasörde çalıştırıyoruz.
+      { title: "Test projesini ve paketleri kur", how: [{"text": "Terminali solution'ın kök klasöründe aç (`ECommerceSolution.sln` dosyasının bulunduğu klasör). Aşağıdaki komutları yukarıdan aşağıya sırayla çalıştır."}, {"text": "Makinede .NET 10 SDK da kuruluysa `dotnet new xunit` komutundaki `-f net8.0` kısmını atlama. Atlarsan test projesi net10.0 hedefler ve net8.0 olan API projesiyle uyuşmaz."}, {"text": "Komutlar bitince her şeyin derlendiğini kontrol et:", "code": "dotnet build"}, {"text": "Sonuç: `ECommerceApi.Tests/` altında `ECommerceApi.Tests.csproj`, boş `UnitTests/` ve `IntegrationTests/` klasörleri olur. Boş klasörler Rider'da ve `git status` çıktısında görünmez, içine ilk dosyayı koyunca belirir."}], why: "Test kodu canlıya çıkan derlemeye karışmasın diye ayrı bir assembly açılır; referans tek yönlüdür.", file: "Terminal", language: "bash", code: String.raw`# Arkadaşlar, bütün komutları solution'ın olduğu ana klasörde çalıştırıyoruz.
 # Yani ECommerceSolution.sln dosyasını gördüğümüz klasörde olmamız lazım.
 #
 # Yanlış klasörde olursak birazdan yazacağımız path'ler çalışmaz.
@@ -842,7 +842,7 @@ rm ECommerceApi.Tests/UnitTest1.cs
 #
 # -p sayesinde klasör zaten varsa mkdir hata vermeden devam eder.
 mkdir -p ECommerceApi.Tests/UnitTests ECommerceApi.Tests/IntegrationTests` },
-      { title: "Program sınıfını teste aç", why: "Top-level statements ile üretilen Program internal'dır; ayrıca InMemory sağlayıcıda migration çalıştırılamaz.", file: "ECommerceApi/Program.cs", language: "csharp", code: String.raw`/*
+      { title: "Program sınıfını teste aç", how: [{"text": "`ECommerceApi/Program.cs` dosyasını aç. `// DATABASE INITIALIZATION` başlığının altındaki `using (var scope = app.Services.CreateScope())` bloğunu bul."}, {"text": "Bloğun içindeki şu satırı bul:", "code": "    dbContext.Database.Migrate();"}, {"text": "Bu tek satırı sil, yerine aşağıdakini yapıştır (blok `{ }` içinde kalmalı):", "code": "    if (dbContext.Database.IsRelational())\n    {\n        dbContext.Database.Migrate();\n    }\n    else\n    {\n        dbContext.Database.EnsureCreated();\n    }"}, {"text": "Dosyanın en sonuna in. `app.Run();` satırının altına bir boş satır bırak ve şunu ekle:", "code": "public partial class Program { }"}, {"text": "Aradaki `// MIDDLEWARE PIPELINE` bölümüne (`app.UseExceptionHandling()` … `app.MapControllers()`) dokunma. Aşağıdaki kod bloğu iki değişikliği yan yana gösteriyor; aradaki satırlar kısalık için atlandı."}, {"text": "Derlendiğini kontrol et:", "code": "dotnet build"}], why: "Top-level statements ile üretilen Program internal'dır; ayrıca InMemory sağlayıcıda migration çalıştırılamaz.", file: "ECommerceApi/Program.cs", language: "csharp", code: String.raw`/*
 Test projesine geçmeden önce API tarafında iki küçük dokunuş yapıyoruz.
 Burada test kodu yazmıyoruz; sadece uygulamayı test edilebilir hale getiriyoruz.
 
@@ -895,7 +895,7 @@ public partial ile aynı sınıfa "sen public'sin" diyoruz.
 Böylece WebApplicationFactory, Program sınıfına erişebiliyor.
 */
 public partial class Program { }` },
-      { title: "ProductService unit testini kur", why: "Repository mock'lanır; veritabanına gidilmeden servisin mapping ve null davranışı doğrulanır.", file: "ECommerceApi.Tests/UnitTests/ProductServiceTests.cs", language: "csharp", code: String.raw`/*
+      { title: "ProductService unit testini kur", how: [{"text": "Rider'da `ECommerceApi.Tests/UnitTests` klasörüne sağ tıkla → Add → Class/Interface → adı `ProductServiceTests` olsun. Şablonun ürettiği içeriği tamamen sil."}, {"text": "Dosyanın en üstüne şu `using` satırlarını ve namespace'i yaz:", "code": "using ECommerceApi.DTOs;\nusing ECommerceApi.Entities;\nusing ECommerceApi.Repositories;\nusing ECommerceApi.Services;\nusing FluentAssertions;\nusing Microsoft.Extensions.Logging.Abstractions;\nusing Moq;\n\nnamespace ECommerceApi.Tests.UnitTests;"}, {"text": "Altına aşağıdaki kod bloğunun tamamını yapıştır: `ProductServiceTests` sınıfı, constructor ve iki `[Fact]` testi."}, {"text": "Çalıştır, 2 test yeşil olmalı:", "code": "dotnet test"}], why: "Repository mock'lanır; veritabanına gidilmeden servisin mapping ve null davranışı doğrulanır.", file: "ECommerceApi.Tests/UnitTests/ProductServiceTests.cs", language: "csharp", code: String.raw`/*
 Önce neyi test edeceğimize karar verelim.
 
 ProductService'te 8 public metot var:
@@ -1000,7 +1000,7 @@ public class ProductServiceTests
         result.Should().BeNull();
     }
 }` },
-      { title: "Verify ve Theory ile derinleş", why: "Dönen değer doğru olup yan etki yanlış olabilir; Verify etkileşimi, Theory ise aynı testi farklı verilerle doğrular.", file: "ECommerceApi.Tests/UnitTests/ProductServiceTests.cs", language: "csharp", code: String.raw`/*
+      { title: "Verify ve Theory ile derinleş", how: [{"text": "Yeni dosya açma, bir önceki adımdaki `UnitTests/ProductServiceTests.cs` dosyasında devam et."}, {"text": "`GetByIdAsync_WhenProductDoesNotExist_ReturnsNull` testinin kapanış `}` satırını bul. Aşağıdaki üç test metodunu bu satırın altına, sınıfı kapatan en son `}` satırının üstüne yapıştır."}, {"text": "Metotlar sınıfın içinde kaldığı için bir seviye içeride olmalı. Rider'da Cmd+Alt+L (Windows'ta Ctrl+Alt+L) ile dosyayı formatla."}, {"text": "Çalıştır, 6 test yeşil olmalı (Theory iki veriyle iki test sayılır):", "code": "dotnet test"}], why: "Dönen değer doğru olup yan etki yanlış olabilir; Verify etkileşimi, Theory ise aynı testi farklı verilerle doğrular.", file: "ECommerceApi.Tests/UnitTests/ProductServiceTests.cs", language: "csharp", code: String.raw`/*
 Aynı ProductServiceTests sınıfına üç test daha ekliyoruz.
 Bu adımdaki yeni kavramlar Verify ve Theory.
 
@@ -1115,7 +1115,7 @@ public async Task UpdateAsync_WhenFieldOmitted_KeepsExistingValue(
     */
     result.Price.Should().Be(100);
 }` },
-      { title: "Controller sözleşmesini test et", why: "Controller iş kuralı değil HTTP cevabı üretir; bu API 404 için NotFound değil ProblemDetails döner.", file: "ECommerceApi.Tests/UnitTests/ProductsControllerTests.cs", language: "csharp", code: String.raw`/*
+      { title: "Controller sözleşmesini test et", how: [{"text": "`ECommerceApi.Tests/UnitTests` klasöründe yeni bir `ProductsControllerTests.cs` dosyası oluştur ve içini boşalt."}, {"text": "Aşağıdaki kod bloğunda sınıf iskeleti yok, sadece testler var. Önce bu iskeleti yapıştır:", "code": "using ECommerceApi.Controllers;\nusing ECommerceApi.DTOs;\nusing ECommerceApi.Services;\nusing FluentAssertions;\nusing Microsoft.AspNetCore.Mvc;\nusing Moq;\n\nnamespace ECommerceApi.Tests.UnitTests;\n\npublic class ProductsControllerTests\n{\n    private readonly Mock<IProductService> _service = new();\n    private readonly ProductsController _sut;\n\n    public ProductsControllerTests()\n    {\n        _sut = new ProductsController(_service.Object);\n    }\n\n    // Asagidaki kod blogundaki iki testi buraya yapistir.\n}"}, {"text": "Aşağıdaki kod bloğundaki iki `[Fact]` testini iskeletteki `// ... buraya yapıştır` yorumunun yerine koy, sonra Cmd+Alt+L ile formatla."}, {"text": "Çalıştır, 8 test yeşil olmalı:", "code": "dotnet test"}], why: "Controller iş kuralı değil HTTP cevabı üretir; bu API 404 için NotFound değil ProblemDetails döner.", file: "ECommerceApi.Tests/UnitTests/ProductsControllerTests.cs", language: "csharp", code: String.raw`/*
 Şimdi bir katman yukarı çıkıyoruz: ProductsController.
 Dosyamız UnitTests/ProductsControllerTests.cs.
 
@@ -1216,7 +1216,7 @@ public async Task Create_WithValidDto_ReturnsCreatedWithLocation()
     created.ActionName.Should().Be(nameof(ProductsController.GetById));
     created.RouteValues!["id"].Should().Be(7);
 }` },
-      { title: "Test fabrikasını hazırla", why: "Gerçek pipeline ayakta kalır; yalnızca veri katmanı her test sınıfına özel izole InMemory veritabanıyla değiştirilir.", file: "ECommerceApi.Tests/IntegrationTests/CustomWebApplicationFactory.cs", language: "csharp", code: String.raw`/*
+      { title: "Test fabrikasını hazırla", how: [{"text": "`ECommerceApi.Tests/IntegrationTests` klasöründe yeni bir `CustomWebApplicationFactory.cs` dosyası oluştur ve içini boşalt."}, {"text": "Dosyanın en üstüne şu `using` satırlarını ve namespace'i yaz:", "code": "using ECommerceApi.Data;\nusing Microsoft.AspNetCore.Hosting;\nusing Microsoft.AspNetCore.Mvc.Testing;\nusing Microsoft.EntityFrameworkCore;\nusing Microsoft.Extensions.DependencyInjection;\n\nnamespace ECommerceApi.Tests.IntegrationTests;"}, {"text": "Altına aşağıdaki `CustomWebApplicationFactory` sınıfının tamamını yapıştır."}, {"text": "Bu sınıf tek başına test değil, sadece derlendiğini kontrol et. `Program` sınıfına erişilemiyor hatası alırsan 2. adımdaki `public partial class Program { }` satırını kontrol et.", "code": "dotnet build"}], why: "Gerçek pipeline ayakta kalır; yalnızca veri katmanı her test sınıfına özel izole InMemory veritabanıyla değiştirilir.", file: "ECommerceApi.Tests/IntegrationTests/CustomWebApplicationFactory.cs", language: "csharp", code: String.raw`/*
 Integration testlere geçiyoruz.
 Bu sefer hiçbir şeyi mock'lamayacağız; API'yi gerçekten ayağa kaldıracağız.
 
@@ -1283,7 +1283,7 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
         });
     }
 }` },
-      { title: "Gerçek HTTP testlerini yaz", why: "Routing, middleware, DI kayıtları ve validation ancak uçtan uca çalıştırılınca doğrulanır.", file: "ECommerceApi.Tests/IntegrationTests/ProductsApiTests.cs", language: "csharp", code: String.raw`/*
+      { title: "Gerçek HTTP testlerini yaz", how: [{"text": "`ECommerceApi.Tests/IntegrationTests` klasöründe yeni bir `ProductsApiTests.cs` dosyası oluştur ve içini boşalt."}, {"text": "Dosyanın en üstüne şu `using` satırlarını ve namespace'i yaz:", "code": "using System.Net;\nusing System.Net.Http.Json;\nusing ECommerceApi.DTOs;\nusing FluentAssertions;\n\nnamespace ECommerceApi.Tests.IntegrationTests;"}, {"text": "Altına aşağıdaki `ProductsApiTests` sınıfının tamamını yapıştır (constructor ve üç test dahil)."}, {"text": "Çalıştır, 11 test yeşil olmalı:", "code": "dotnet test"}], why: "Routing, middleware, DI kayıtları ve validation ancak uçtan uca çalıştırılınca doğrulanır.", file: "ECommerceApi.Tests/IntegrationTests/ProductsApiTests.cs", language: "csharp", code: String.raw`/*
 Şimdi factory'yi kullanarak gerçek HTTP testleri yazıyoruz.
 Dosyamız IntegrationTests/ProductsApiTests.cs.
 
@@ -1436,7 +1436,7 @@ public class ProductsApiTests :
             .Be(HttpStatusCode.BadRequest);
     }
 }` },
-      { title: "Testleri çalıştır", why: "Unit ve integration suite aynı komutla derlenir ve yürütülür; coverage hedef değil harita olarak okunur.", file: "Terminal", language: "bash", code: String.raw`# Testleri yazdık.
+      { title: "Testleri çalıştır", how: [{"text": "Komutları solution'ın kök klasöründe çalıştır."}, {"text": "Beklenen sonuç: sadece bu sayfadaki testleri yazdıysan `Passed: 11`, branch'teki dosyaların tamamıyla `Passed: 17`."}, {"text": "Coverage raporu `ECommerceApi.Tests/TestResults/<guid>/coverage.cobertura.xml` olarak oluşur. `TestResults/` klasörü `.gitignore`'da olduğu için commit'e girmez."}, {"text": "Kendi yazdığını referansla karşılaştırmak için:", "code": "git diff origin/ref/s08-testing-v2 -- ECommerceApi ECommerceApi.Tests"}], why: "Unit ve integration suite aynı komutla derlenir ve yürütülür; coverage hedef değil harita olarak okunur.", file: "Terminal", language: "bash", code: String.raw`# Testleri yazdık.
 # Şimdi bir çalıştırıp bakalım.
 #
 # Solution'ın olduğu ana klasörde dotnet test diyoruz.
