@@ -698,11 +698,11 @@ public async Task<ActionResult<TransferResponseDto>> Transfer(
             { title: "xUnit Temelleri", description: "xUnit tek ve parametrik senaryoları Arrange, Act ve Assert düzeninde okunabilir testler olarak ifade eder.", points: ["`[Fact]` ile tek senaryo", "`[Theory]` ve `[InlineData]` ile parametrik test", "Arrange → Act → Assert düzeni"] },
             { title: "Mocking", description: "Moq gerçek bağımlılıklar yerine kontrollü test double'ları kullanarak test edilen davranışı izole eder.", points: ["Moq ile bağımlılıkları izole etme", "`Setup` ile beklenen davranışı hazırlama", "`Verify` ile yapılan çağrıyı doğrulama"] },
             { title: "Unit Testin Sınırı", description: "Mock'lanan bağımlılıklar her davranışı taşıyamaz; `IQueryable` üzerinde asenkron sorgu çalıştıran kod unit testte doğrulanamaz.", points: ["`Query()` dönen metotlar mock'la test edilemez", "Sayfalama ve arama gerçek sağlayıcı ister", "Bu boşluğu integration test kapatır"] },
-            { title: "Controller Sözleşmesi", description: "Controller testi iş kuralını değil, sonucun doğru HTTP cevabına çevrildiğini doğrular.", points: ["`ActionResult<T>` içinde sonuç `Result` alanındadır", "`Problem(...)` `NotFoundResult` değil `ObjectResult` döner", "201 cevabında `ActionName` ve `RouteValues` da doğrulanır"] },
+            { title: "Controller Sözleşmesi", description: "Controller testi iş kuralını değil, sonucun doğru HTTP cevabına çevrildiğini doğrular.", points: ["`ActionResult<T>` içinde sonuç `Result` alanındadır", "`Problem(...)` `NotFoundResult` değil `ObjectResult` döner", "201 cevabında gövdedeki DTO da doğrulanır"] },
             { title: "Integration Testing", description: "WebApplicationFactory gerçek middleware ve routing pipeline'ını izole bir veri ortamıyla bellekte çalıştırır.", points: ["`WebApplicationFactory<Program>` ile test sunucusu", "Testlere özel InMemory veritabanı", "Gerçek HTTP isteği ve middleware pipeline'ı"] },
             { title: "Test Araçları ve AI", description: "FluentAssertions okunabilir doğrulamalar sağlarken AI çıktıları insan incelemesi ve çalışan testlerle doğrulanmalıdır.", points: ["FluentAssertions 7.x ücretsiz lisansla kullanılır", "Code coverage hedef değil, harita olarak okunur", "AI üretimi testler okunmadan ve çalıştırılmadan kabul edilmez"] }
     ],
-        checklist: ["xUnit test projesini net8.0 hedefiyle oluştur ve solution'a ekle.", "Moq, FluentAssertions 7, Mvc.Testing ve EF InMemory paketlerini kur.", "Program sınıfını public partial yap, migration adımını IsRelational ile koru.", "ProductService için Fact, Theory ve Verify örnekleriyle unit test yaz.", "ProductsController'ın 200 / 404 ProblemDetails / 201 / 204 sözleşmesini doğrula.", "CustomWebApplicationFactory ile izole InMemory ortamı kur.", "Gerçek HTTP üzerinden sayfalama, uçtan uca oluşturma ve 400 senaryolarını test et.", "dotnet test ile tüm testleri çalıştır, isteğe bağlı coverage raporu al."],
+        checklist: ["xUnit test projesini net8.0 hedefiyle oluştur ve solution'a ekle.", "Moq, FluentAssertions 7, Mvc.Testing ve EF InMemory paketlerini kur.", "Program sınıfını public partial yap, migration adımını IsRelational ile koru.", "ProductService'in GetById, Delete, Create ve Update davranışlarını unit testle doğrula.", "ProductsController'ın GetById 200 / 404 ProblemDetails, GetAll 200 ve Create 201 sözleşmesini doğrula.", "CustomWebApplicationFactory ile izole InMemory ortamı kur.", "Gerçek HTTP üzerinden sayfalama, okuma, oluşturma, güncelleme ve silme senaryolarını test et.", "dotnet test ile tüm testleri çalıştır, isteğe bağlı coverage raporu al."],
     code: [
       { title: "Test projesini ve paketleri kur", how: [{"text": "Terminali solution'ın kök klasöründe aç (`ECommerceSolution.sln` dosyasının bulunduğu klasör). Aşağıdaki komutları yukarıdan aşağıya sırayla çalıştır."}, {"text": "Makinede .NET 10 SDK da kuruluysa `dotnet new xunit` komutundaki `-f net8.0` kısmını atlama. Atlarsan test projesi net10.0 hedefler ve net8.0 olan API projesiyle uyuşmaz."}, {"text": "Komutlar bitince her şeyin derlendiğini kontrol et:", "code": "dotnet build"}, {"text": "Sonuç: `ECommerceApi.Tests/` altında `ECommerceApi.Tests.csproj`, boş `UnitTests/` ve `IntegrationTests/` klasörleri olur. Boş klasörler Rider'da ve `git status` çıktısında görünmez, içine ilk dosyayı koyunca belirir."}], why: "Test kodu canlıya çıkan derlemeye karışmasın diye ayrı bir assembly açılır; referans tek yönlüdür.", file: "Terminal", language: "bash", code: String.raw`# Arkadaşlar, bütün komutları solution'ın olduğu ana klasörde çalıştırıyoruz.
 # Yani ECommerceSolution.sln dosyasını gördüğümüz klasörde olmamız lazım.
@@ -907,75 +907,76 @@ Kendimize şunu soruyoruz: bu metodun içinde bir karar ya da kural var mı?
 
 Unit test ile test edeceklerimiz:
 - GetByIdAsync: Ürün varsa DTO'ya çeviriyor mu, yoksa null dönüyor mu?
-- DeleteAsync: Ürün yoksa silmeyi hiç denemiyor mu, varsa SoftDelete çağırıyor mu?
-- UpdateAsync: Gönderilmeyen alanlar eski değerini koruyor mu?
-- CreateAsync: DTO'yu doğru entity'ye çevirip repository'ye veriyor mu?
+- DeleteAsync: Ürün varsa true, yoksa false dönüyor mu?
+- CreateAsync: Kaydedilen ürünü DTO olarak geri veriyor mu?
+- UpdateAsync: Gönderdiğimiz yeni değerler ürüne yansıyor mu?
 
 Unit test ile test edemediklerimiz:
 - GetPagedAsync ve SearchAsync repository'den IQueryable alıp
   sorguyu veritabanında çalıştırıyor.
   Mock bu sorguyu gerçekten çalıştıramaz.
-  Bunları birazdan integration testte gerçek HTTP ile deneyeceğiz.
+  Sayfalamayı birazdan integration testte gerçek HTTP ile deneyeceğiz.
 
 Şimdilik atladıklarımız:
 - GetAllAsync ve GetLowStockAsync repository'den geleni sadece DTO'ya çeviriyor.
   İçlerinde bir karar yok, önceliğimiz düşük.
 
-Bu dosyada toplam 6 test metodu olacak.
+Bu dosyada toplam 6 test olacak.
 Bu adımda ilk ikisini yazıyoruz: GetByIdAsync için ürün var ve ürün yok senaryoları.
-Delete ve Update testleri bir sonraki adımda geliyor.
-CreateAsync testi branch'te hazır, zaman kalırsa birlikte bakarız.
+Delete, Create ve Update testleri bir sonraki adımda geliyor.
 */
 
 public class ProductServiceTests
 {
     private readonly Mock<IProductRepository> _repository = new(); /* sahte repository, ne döneceğini her testte biz söyleyeceğiz */
-    private readonly ProductService _sut; /* sut = System Under Test, yani şu an test ettiğimiz sınıf */
+    private readonly IProductService _sut; /* sut = System Under Test, yani şu an test ettiğimiz sınıf */
 
     /*
     xUnit her test metodu için bu sınıfı baştan oluşturuyor.
     Yani constructor her testten önce tekrar çalışıyor
     ve her test tertemiz bir mock ile başlıyor.
 
+    _sut'u IProductService olarak tutuyoruz.
+    Controller da servisi bu interface üzerinden görüyor;
+    biz de servisi dışarıdan nasıl kullanılıyorsa öyle test ediyoruz.
+
     Logger'ı test etmiyoruz; NullLogger hiçbir şey yazmayan hazır bir logger.
     */
     public ProductServiceTests()
     {
-        _sut = new ProductService(
-            _repository.Object,
-            NullLogger<ProductService>.Instance);
+        _sut = new ProductService(_repository.Object, NullLogger<ProductService>.Instance);
     }
 
     [Fact]
-    public async Task GetByIdAsync_WhenProductExists_ReturnsDto()
+    public async Task GetByIdAsync_WhenProductExists_ReturnsProductDto()
     {
         /*
-        Arrange kısmında test için gerekli ortamı hazırlıyoruz.
+        Arrange: Test için gerekli ortamı hazırlıyoruz.
 
         Repository'ye diyoruz ki:
         GetByIdAsync(1) çağrılırsa bize bu ürünü dön.
         */
-        _repository
-            .Setup(r => r.GetByIdAsync(1))
-            .ReturnsAsync(new ProductEntity
-            {
-                Id = 1,
-                Name = "Laptop",
-                Price = 25000,
-                Stock = 10
-            });
+        _repository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(new ProductEntity()
+        {
+            Id = 1,
+            Name = "Laptop",
+            Price = 25000,
+            Stock = 10
+        });
 
         /*
-        Act kısmında gerçekten test etmek istediğimiz metodu çağırıyoruz.
+        Act: Gerçekten test etmek istediğimiz metodu çağırıyoruz.
         */
         var result = await _sut.GetByIdAsync(1);
 
         /*
-        Assert kısmında da sonucu kontrol ediyoruz.
+        Assert: Sonucu kontrol ediyoruz.
 
-        Ürün null olmamalı,
-        Id'si 1 olmalı
-        ve adı Laptop olmalı.
+        Servis entity'yi DTO'ya çevirmiş olmalı:
+        sonuç null değil, Id'si 1, adı Laptop.
+
+        result! içindeki ünlem işareti derleyiciye
+        "bir üst satırda null olmadığını zaten kontrol ettim" demek.
         */
         result.Should().NotBeNull();
         result!.Id.Should().Be(1);
@@ -986,138 +987,139 @@ public class ProductServiceTests
     public async Task GetByIdAsync_WhenProductDoesNotExist_ReturnsNull()
     {
         /*
-        Bu sefer repository'ye 999 id'li bir ürün olmadığını söylüyoruz.
-        */
-        _repository
-            .Setup(r => r.GetByIdAsync(999))
-            .ReturnsAsync((ProductEntity?)null);
+        Yine 1 id'sini soruyoruz ama bu sefer repository null dönüyor.
 
-        var result = await _sut.GetByIdAsync(999);
+        Bir önceki testteki Setup burada geçerli değil.
+        Constructor her test için yeniden çalıştığı için
+        her test kendi mock'unu kendisi hazırlıyor.
+        */
+        _repository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync((ProductEntity?)null);
+
+        var result = await _sut.GetByIdAsync(1);
 
         /*
         Ürün yoksa servisten de null dönmesini bekliyoruz.
+        404'e çevirmek servisin değil, controller'ın işi.
         */
         result.Should().BeNull();
     }
 }` },
-      { title: "Verify ve Theory ile derinleş", how: [{"text": "Yeni dosya açma, bir önceki adımdaki `UnitTests/ProductServiceTests.cs` dosyasında devam et."}, {"text": "`GetByIdAsync_WhenProductDoesNotExist_ReturnsNull` testinin kapanış `}` satırını bul. Aşağıdaki üç test metodunu bu satırın altına, sınıfı kapatan en son `}` satırının üstüne yapıştır."}, {"text": "Metotlar sınıfın içinde kaldığı için bir seviye içeride olmalı. Rider'da Cmd+Alt+L (Windows'ta Ctrl+Alt+L) ile dosyayı formatla."}, {"text": "Çalıştır, 6 test yeşil olmalı (Theory iki veriyle iki test sayılır):", "code": "dotnet test"}], why: "Dönen değer doğru olup yan etki yanlış olabilir; Verify etkileşimi, Theory ise aynı testi farklı verilerle doğrular.", file: "ECommerceApi.Tests/UnitTests/ProductServiceTests.cs", language: "csharp", code: String.raw`/*
-Aynı ProductServiceTests sınıfına üç test daha ekliyoruz.
-Bu adımdaki yeni kavramlar Verify ve Theory.
+      { title: "Delete, Create ve Update testlerini ekle", how: [{"text": "Yeni dosya açma, bir önceki adımdaki `UnitTests/ProductServiceTests.cs` dosyasında devam et."}, {"text": "`GetByIdAsync_WhenProductDoesNotExist_ReturnsNull` testinin kapanış `}` satırını bul. Aşağıdaki dört test metodunu bu satırın altına, sınıfı kapatan en son `}` satırının üstüne yapıştır."}, {"text": "Metotlar sınıfın içinde kaldığı için bir seviye içeride olmalı. Rider'da Cmd+Alt+L (Windows'ta Ctrl+Alt+L) ile dosyayı formatla."}, {"text": "Çalıştır, 6 test yeşil olmalı:", "code": "dotnet test"}], why: "Her metodun hem mutlu yolunu hem de ürün bulunamadığında ne yaptığını, veritabanına gitmeden doğrularız.", file: "ECommerceApi.Tests/UnitTests/ProductServiceTests.cs", language: "csharp", code: String.raw`/*
+Aynı ProductServiceTests sınıfına dört test daha ekliyoruz.
 
-- DeleteAsync_WhenProductDoesNotExist_ReturnsFalseAndSkipsDelete:
-  Ürün yoksa false dönüyor mu ve silme hiç denenmiyor mu?
+- DeleteAsync_WhenProductExists_ReturnsTrue:
+  Ürün varsa silip true dönüyor mu?
+- DeleteAsync_WhenProductDoesNotExist_ReturnsFalse:
+  Ürün yoksa false dönüyor mu?
+- CreateAsync_WhenCalled_ReturnsCreatedProductDto:
+  Kaydedilen ürün DTO olarak geri geliyor mu?
+- UpdateAsync_WhenProductExists_ReturnsUpdatedProductDto:
+  Gönderdiğimiz yeni ad ve fiyat ürüne yansıyor mu?
 
-- DeleteAsync_WhenProductExists_CallsSoftDelete:
-  Ürün varsa true dönüyor mu ve SoftDelete tam bir kere çağrılıyor mu?
-
-- UpdateAsync_WhenFieldOmitted_KeepsExistingValue:
-  Tek bir test, iki farklı veriyle iki kez çalışıyor.
-
-Neden Verify?
-DeleteAsync bize sadece true ya da false dönüyor.
-Asıl iş, yani silme, repository'de oluyor.
-Dönen değere bakmak yetmez; doğru metodun doğru sayıda çağrıldığını da görmemiz lazım.
-
-Neden Theory?
-Aynı testi iki kez kopyalamak yerine, değişen kısmı InlineData ile parametre olarak veriyoruz.
-Test Explorer'da bu tek metot iki ayrı test olarak görünüyor.
+Hepsinde kalıp aynı:
+Repository'nin ne döneceğini Setup ile söylüyoruz,
+servisi çağırıyoruz, sonucu kontrol ediyoruz.
 */
 
 [Fact]
-public async Task DeleteAsync_WhenProductDoesNotExist_ReturnsFalseAndSkipsDelete()
+public async Task DeleteAsync_WhenProductExists_ReturnsTrue()
 {
     /*
-    Önce olmayan bir ürün senaryosu hazırlıyoruz.
-    999 id'li ürün repository'de yok.
+    DeleteAsync'in içine bakalım, iki adım var:
+    1) GetByIdAsync ile ürün var mı diye bakıyor.
+    2) Varsa SoftDeleteAsync ile siliyor.
+
+    O yüzden iki şeyi hazırlıyoruz:
+    1 id'li ürün bulunsun ve SoftDeleteAsync sorunsuz tamamlansın.
+
+    SoftDelete kaydı tablodan silmiyor, IsDeleted alanını true yapıyor.
+    Ama burada repository sahte; veritabanına hiç gitmiyoruz.
     */
-    _repository
-        .Setup(r => r.GetByIdAsync(999))
-        .ReturnsAsync((ProductEntity?)null);
-
-    var result = await _sut.DeleteAsync(999);
-
-    /*
-    Ürün olmadığı için DeleteAsync false dönmeli.
-
-    Bir de sadece sonucu kontrol etmekle kalmıyoruz.
-    SoftDeleteAsync metodunun hiç çağrılmadığını da doğruluyoruz.
-    */
-    result.Should().BeFalse();
-
-    _repository.Verify(
-        r => r.SoftDeleteAsync(It.IsAny<int>()),
-        Times.Never);
-}
-
-[Fact]
-public async Task DeleteAsync_WhenProductExists_CallsSoftDelete()
-{
-    /*
-    Bu sefer ürün var.
-
-    Repository'den 1 id'li ürünü döndürüyoruz.
-    */
-    _repository
-        .Setup(r => r.GetByIdAsync(1))
-        .ReturnsAsync(new ProductEntity
-        {
-            Id = 1,
-            Name = "Laptop"
-        });
+    var product = new ProductEntity() { Id = 1, Name = "Laptop", Price = 25000, Stock = 10 };
+    _repository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(product);
+    _repository.Setup(r => r.SoftDeleteAsync(1)).Returns(Task.CompletedTask);
 
     var result = await _sut.DeleteAsync(1);
 
-    /*
-    Silme işleminin başarılı olduğunu
-    ve SoftDeleteAsync'in tam bir kere çağrıldığını kontrol ediyoruz.
-    */
     result.Should().BeTrue();
-
-    _repository.Verify(
-        r => r.SoftDeleteAsync(1),
-        Times.Once);
 }
 
-[Theory]
-[InlineData("Yeni Ad", "Yeni Ad")]
-[InlineData(null, "Eski Ad")]
-public async Task UpdateAsync_WhenFieldOmitted_KeepsExistingValue(
-    string? incomingName,
-    string expectedName)
+[Fact]
+public async Task DeleteAsync_WhenProductDoesNotExist_ReturnsFalse()
 {
     /*
-    Burada iki farklı durumu aynı test içerisinde deniyoruz.
-
-    Name gönderirsek yeni değer kullanılmalı.
-
-    Name'i null gönderirsek de mevcut değer,
-    yani "Eski Ad" korunmalı.
+    Bu sefer 2 id'li ürün yok.
+    Servis ürünü bulamayınca silmeye hiç geçmeden false dönmeli.
+    Controller da bu false'u birazdan 404'e çevirecek.
     */
-    _repository
-        .Setup(r => r.GetByIdAsync(1))
-        .ReturnsAsync(new ProductEntity
-        {
-            Id = 1,
-            Name = "Eski Ad",
-            Price = 100,
-            Stock = 5
-        });
+    _repository.Setup(r => r.GetByIdAsync(2)).ReturnsAsync((ProductEntity?)null);
 
-    var result = await _sut.UpdateAsync(
-        1,
-        new UpdateProductDto { Name = incomingName });
+    var result = await _sut.DeleteAsync(2);
 
-    result!.Name.Should().Be(expectedName);
+    result.Should().BeFalse();
+}
+
+[Fact]
+public async Task CreateAsync_WhenCalled_ReturnsCreatedProductDto()
+{
+    /*
+    CreateAsync, DTO'dan yeni bir ProductEntity oluşturup repository'ye veriyor.
+    Bu entity servisin içinde new'leniyor, biz o nesneye dışarıdan erişemiyoruz.
+
+    It.IsAny<ProductEntity>() tam bunun için var:
+    "AddAsync'e hangi ürün gelirse gelsin, bana createdEntity'yi dön."
+
+    Gerçek hayatta Id'yi veritabanı verir.
+    Burada sahte repository Id'si 1 olan ürünü dönerek bunu taklit ediyor.
+    */
+    var createDto = new CreateProductDto { Name = "Laptop", Price = 25000, Stock = 10 };
+    var createdEntity = new ProductEntity { Id = 1, Name = "Laptop", Price = 25000, Stock = 10 };
+    _repository.Setup(r => r.AddAsync(It.IsAny<ProductEntity>())).ReturnsAsync(createdEntity);
+
+    var result = await _sut.CreateAsync(createDto);
 
     /*
-    Price'a hiç dokunmadık.
-    O yüzden eski değerinin aynen kalmasını bekliyoruz.
+    Servis repository'den gelen ürünü DTO'ya çevirip dönmeli.
+    Id'nin 1 gelmesi, sonucun gerçekten kaydedilen üründen üretildiğini gösteriyor.
     */
-    result.Price.Should().Be(100);
+    result.Should().NotBeNull();
+    result.Id.Should().Be(1);
+    result.Name.Should().Be("Laptop");
+}
+
+[Fact]
+public async Task UpdateAsync_WhenProductExists_ReturnsUpdatedProductDto()
+{
+    /*
+    Elimizde adı Laptop, fiyatı 25000 olan bir ürün var.
+    Adını "Laptop Pro", fiyatını 30000 yapmak istiyoruz.
+
+    UpdateProductDto'daki alanlar nullable.
+    Stock'u hiç göndermiyoruz, yani null kalıyor.
+    Servis sadece gönderilen alanları değiştiriyor.
+    */
+    var updateDto = new UpdateProductDto { Name = "Laptop Pro", Price = 30000 };
+    var existingEntity = new ProductEntity { Id = 1, Name = "Laptop", Price = 25000, Stock = 10 };
+    _repository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(existingEntity);
+    _repository.Setup(r => r.UpdateAsync(existingEntity)).Returns(Task.CompletedTask);
+
+    var result = await _sut.UpdateAsync(1, updateDto);
+
+    /*
+    Dönen DTO'da yeni ad ve yeni fiyat olmalı.
+
+    İstersen bir satır daha ekleyip
+    result.Stock.Should().Be(10);
+    ile göndermediğimiz alanın eski değerini koruduğunu da kontrol edebilirsin.
+    */
+    result.Should().NotBeNull();
+    result!.Id.Should().Be(1);
+    result.Name.Should().Be("Laptop Pro");
+    result.Price.Should().Be(30000);
 }` },
-      { title: "Controller sözleşmesini test et", how: [{"text": "`ECommerceApi.Tests/UnitTests` klasöründe yeni bir `ProductsControllerTests.cs` dosyası oluştur ve içini boşalt."}, {"text": "Aşağıdaki kod bloğunda sınıf iskeleti yok, sadece testler var. Önce bu iskeleti yapıştır:", "code": "using ECommerceApi.Controllers;\nusing ECommerceApi.DTOs;\nusing ECommerceApi.Services;\nusing FluentAssertions;\nusing Microsoft.AspNetCore.Mvc;\nusing Moq;\n\nnamespace ECommerceApi.Tests.UnitTests;\n\npublic class ProductsControllerTests\n{\n    private readonly Mock<IProductService> _service = new();\n    private readonly ProductsController _sut;\n\n    public ProductsControllerTests()\n    {\n        _sut = new ProductsController(_service.Object);\n    }\n\n    // Asagidaki kod blogundaki iki testi buraya yapistir.\n}"}, {"text": "Aşağıdaki kod bloğundaki iki `[Fact]` testini iskeletteki `// ... buraya yapıştır` yorumunun yerine koy, sonra Cmd+Alt+L ile formatla."}, {"text": "Çalıştır, 8 test yeşil olmalı:", "code": "dotnet test"}], why: "Controller iş kuralı değil HTTP cevabı üretir; bu API 404 için NotFound değil ProblemDetails döner.", file: "ECommerceApi.Tests/UnitTests/ProductsControllerTests.cs", language: "csharp", code: String.raw`/*
+      { title: "Controller sözleşmesini test et", how: [{"text": "`ECommerceApi.Tests/UnitTests` klasöründe yeni bir `ProductControllerTests.cs` dosyası oluştur ve içini boşalt."}, {"text": "Dosyanın en üstüne şu `using` satırlarını ve namespace'i yaz:", "code": "using ECommerceApi.Controllers;\nusing ECommerceApi.DTOs;\nusing ECommerceApi.Services;\nusing FluentAssertions;\nusing Microsoft.AspNetCore.Mvc;\nusing Moq;\n\nnamespace ECommerceApi.Tests.UnitTests;"}, {"text": "Altına aşağıdaki `ProductsControllerTests` sınıfının tamamını yapıştır (constructor ve dört test dahil)."}, {"text": "Çalıştır, 10 test yeşil olmalı:", "code": "dotnet test"}], why: "Controller iş kuralı değil HTTP cevabı üretir; bu API 404 için NotFound değil ProblemDetails döner.", file: "ECommerceApi.Tests/UnitTests/ProductControllerTests.cs", language: "csharp", code: String.raw`/*
 Şimdi bir katman yukarı çıkıyoruz: ProductsController.
-Dosyamız UnitTests/ProductsControllerTests.cs.
+Dosyamız UnitTests/ProductControllerTests.cs.
 
 Burada iş kuralını test etmiyoruz, o ProductService'in işiydi.
 Controller'da test ettiğimiz şey HTTP sözleşmesi:
@@ -1127,94 +1129,153 @@ Sınıfın kurulumu ProductServiceTests ile aynı mantıkta:
 _service sahte bir IProductService,
 _sut da bu sahte servisi alan ProductsController.
 
-Controller'daki metotlar ve beklediğimiz cevaplar:
-- GetById: Ürün varsa 200 OK, yoksa 404 ProblemDetails.
-- Create: 201 Created ve yeni ürünün adresi.
-- Delete: Ürün varsa 204 NoContent, yoksa 404 NotFound.
-- GetAll: Sayfalama gerçek veritabanı istediği için integration testte deneyeceğiz.
-- Update: Bu oturumda yazmıyoruz; aynı kalıpla ödev olarak denenebilir.
+Bu dosyada 4 test var:
+- GetById: Ürün varsa 200 OK ve ürünün kendisi.
+- GetById: Ürün yoksa 404 ProblemDetails.
+- GetAll: Servisten gelen sayfalı sonuç 200 OK ile dönüyor mu?
+- Create: 201 Created ve oluşturulan ürün.
 
-Bu dosyada 5 test var.
-Bu adımda en öğretici ikisine odaklanıyoruz: 404 ProblemDetails ve 201 Created.
-Diğer üçü, yani 200 OK ile Delete'in 204 ve 404 senaryoları, branch'te hazır.
+Update ve Delete'i burada yazmıyoruz.
+Onları birazdan integration testte gerçek HTTP isteğiyle deneyeceğiz.
 */
 
-[Fact]
-public async Task GetById_WhenProductDoesNotExist_ReturnsProblemDetailsWith404()
+public class ProductsControllerTests
 {
-    /*
-    Service'e diyoruz ki 999 id'li ürün sorulursa null dön.
-    Yani ürün bulunamadı senaryosunu oluşturuyoruz.
-    */
-    _service
-        .Setup(s => s.GetByIdAsync(999))
-        .ReturnsAsync((ProductDto?)null);
+    private readonly Mock<IProductService> _service = new();
+    private readonly ProductsController _sut;
 
-    var result = await _sut.GetById(999);
-
-    /*
-    Controller burada direkt NotFound() dönmüyor.
-    Problem(...) kullandığı için elimizde ObjectResult
-    ve onun içerisinde ProblemDetails olmasını bekliyoruz.
-    */
-    var objectResult = result.Result
-        .Should()
-        .BeOfType<ObjectResult>()
-        .Subject;
-
-    objectResult.StatusCode.Should().Be(404);
-
-    var problem = objectResult.Value
-        .Should()
-        .BeOfType<ProblemDetails>()
-        .Subject;
-
-    /*
-    Sadece 404 geldi mi diye bakmıyoruz.
-    Dönen hata içeriğinin de doğru olduğunu kontrol ediyoruz.
-    */
-    problem.Title.Should().Be("Ürün bulunamadı");
-    problem.Detail.Should().Contain("999");
-}
-
-[Fact]
-public async Task Create_WithValidDto_ReturnsCreatedWithLocation()
-{
-    /*
-    Geçerli bir ürün oluşturuyoruz.
-    */
-    var dto = new CreateProductDto
+    public ProductsControllerTests()
     {
-        Name = "Mekanik Klavye",
-        Price = 1500,
-        Stock = 30
-    };
+        _sut = new ProductsController(_service.Object);
+    }
 
-    _service
-        .Setup(s => s.CreateAsync(dto))
-        .ReturnsAsync(new ProductDto
+    [Fact]
+    public async Task GetById_WhenProductExists_ReturnsOk()
+    {
+        /*
+        Servise diyoruz ki 1 id'li ürün sorulursa bu DTO'yu dön.
+        */
+        var productDto = new ProductDto { Id = 1, Name = "Laptop", Price = 25000, Stock = 10 };
+        _service.Setup(s => s.GetByIdAsync(1)).ReturnsAsync(productDto);
+
+        var result = await _sut.GetById(1);
+
+        /*
+        Metot ActionResult<ProductDto> dönüyor.
+        HTTP cevabı, yani Ok(...) ya da Problem(...), Result alanının içinde.
+
+        Önce cevabın 200 OK olduğunu kontrol ediyoruz.
+        Sonra as ile OkObjectResult'a çevirip gövdeye bakıyoruz.
+
+        BeEquivalentTo nesneleri alan alan karşılaştırıyor:
+        Id, Name, Price, Stock... hepsi aynı mı?
+        */
+        result.Result.Should().BeOfType<OkObjectResult>();
+        var okResult = result.Result as OkObjectResult;
+        okResult!.Value.Should().BeEquivalentTo(productDto);
+    }
+
+    [Fact]
+    public async Task GetById_WhenProductDoesNotExist_ReturnsNotFound()
+    {
+        /*
+        Bu sefer servis null dönüyor, yani ürün yok.
+        */
+        _service.Setup(s => s.GetByIdAsync(1)).ReturnsAsync((ProductDto?)null);
+
+        var result = await _sut.GetById(1);
+
+        /*
+        Burada küçük bir tuzak var.
+
+        Controller ürün yoksa NotFound() değil, Problem(...) dönüyor.
+        Problem(...) bize NotFoundResult değil, ObjectResult veriyor
+        ve içinde ProblemDetails taşıyor.
+
+        O yüzden tipi ObjectResult olarak bekliyoruz,
+        404 olduğunu da StatusCode üzerinden kontrol ediyoruz.
+        BeOfType<NotFoundResult>() yazsaydık bu test patlardı.
+        */
+        result.Result.Should().BeOfType<ObjectResult>();
+        var notFoundResult = result.Result as ObjectResult;
+        notFoundResult!.StatusCode.Should().Be(404);
+    }
+
+    [Fact]
+    public async Task GetAll_ReturnsPagedResult()
+    {
+        /*
+        Burada sayfalamanın doğru çalıştığını test etmiyoruz.
+        Servis sahte; sayfalanmış sonucu kendimiz hazırlıyoruz.
+
+        It.IsAny<ProductQueryParameters>() şunu söylüyor:
+        "Hangi sorgu parametreleri gelirse gelsin, bu sonucu dön."
+
+        Controller'ın buradaki tek işi servisten geleni 200 OK ile sarmak.
+        Sayfalamanın gerçekten çalıştığını integration testte göreceğiz.
+        */
+        var pagedResult = new PagedResult<ProductDto>
         {
-            Id = 7,
-            Name = dto.Name,
-            Price = dto.Price
-        });
+            Items = new List<ProductDto>
+            {
+                new ProductDto { Id = 1, Name = "Laptop", Price = 25000, Stock = 10 },
+                new ProductDto { Id = 2, Name = "Mouse", Price = 100, Stock = 50 }
+            },
+            Page = 1,
+            PageSize = 10,
+            TotalCount = 2
+        };
+        _service.Setup(s => s.GetPagedAsync(It.IsAny<ProductQueryParameters>())).ReturnsAsync(pagedResult);
 
-    var result = await _sut.Create(dto);
+        var result = await _sut.GetAll(new ProductQueryParameters());
 
-    /*
-    REST tarafında create işleminden sonra 201 Created bekliyoruz.
+        /*
+        Servisten ne geldiyse gövdede aynen o olmalı.
+        */
+        result.Result.Should().BeOfType<OkObjectResult>();
+        var okResult = result.Result as OkObjectResult;
+        okResult!.Value.Should().BeEquivalentTo(pagedResult);
+    }
 
-    Aynı zamanda Location bilgisinin hangi endpoint'i gösterdiğini
-    ve oluşturulan ürünün id'sinin route'a doğru yazıldığını kontrol ediyoruz.
-    */
-    var created = result.Result
-        .Should()
-        .BeOfType<CreatedAtActionResult>()
-        .Subject;
+    [Fact]
+    public async Task Create_WhenModelIsValid_ReturnsCreatedAtAction()
+    {
+        /*
+        Geçerli bir ürün gönderiyoruz.
+        Servis bu ürünü Id'si 3 olarak kaydetmiş gibi davranacak.
+        */
+        var createDto = new CreateProductDto { Name = "Keyboard", Price = 200, Stock = 30 };
+        var createdProductDto = new ProductDto { Id = 3, Name = "Keyboard", Price = 200, Stock = 30 };
+        _service.Setup(s => s.CreateAsync(createDto)).ReturnsAsync(createdProductDto);
 
-    created.StatusCode.Should().Be(201);
-    created.ActionName.Should().Be(nameof(ProductsController.GetById));
-    created.RouteValues!["id"].Should().Be(7);
+        var result = await _sut.Create(createDto);
+
+        /*
+        REST'te oluşturma işleminden sonra 201 Created bekliyoruz.
+        Controller bunu CreatedAtAction ile dönüyor.
+
+        Burada sonucu almanın iki yolunu yan yana görüyoruz:
+        - Should().BeOfType<...>().Subject
+          Tipi kontrol ediyor ve aynı satırda nesneyi bize veriyor.
+        - as CreatedAtActionResult
+          Önceki testlerde kullandığımız klasik C# dönüşümü.
+
+        İkisi de aynı nesneyi veriyor; Subject'li hali daha kısa.
+        */
+        result.Result.Should().BeOfType<CreatedAtActionResult>();
+        var created = result.Result
+            .Should()
+            .BeOfType<CreatedAtActionResult>()
+            .Subject;
+
+        created.StatusCode.Should().Be(201);
+
+        /*
+        Son olarak gövdede servisin döndüğü ürünün olduğunu kontrol ediyoruz.
+        */
+        var createdAtActionResult = result.Result as CreatedAtActionResult;
+        createdAtActionResult!.Value.Should().BeEquivalentTo(createdProductDto);
+    }
 }` },
       { title: "Test fabrikasını hazırla", how: [{"text": "`ECommerceApi.Tests/IntegrationTests` klasöründe yeni bir `CustomWebApplicationFactory.cs` dosyası oluştur ve içini boşalt."}, {"text": "Dosyanın en üstüne şu `using` satırlarını ve namespace'i yaz:", "code": "using ECommerceApi.Data;\nusing Microsoft.AspNetCore.Hosting;\nusing Microsoft.AspNetCore.Mvc.Testing;\nusing Microsoft.EntityFrameworkCore;\nusing Microsoft.Extensions.DependencyInjection;\n\nnamespace ECommerceApi.Tests.IntegrationTests;"}, {"text": "Altına aşağıdaki `CustomWebApplicationFactory` sınıfının tamamını yapıştır."}, {"text": "Bu sınıf tek başına test değil, sadece derlendiğini kontrol et. `Program` sınıfına erişilemiyor hatası alırsan 2. adımdaki `public partial class Program { }` satırını kontrol et.", "code": "dotnet build"}], why: "Gerçek pipeline ayakta kalır; yalnızca veri katmanı her test sınıfına özel izole InMemory veritabanıyla değiştirilir.", file: "ECommerceApi.Tests/IntegrationTests/CustomWebApplicationFactory.cs", language: "csharp", code: String.raw`/*
 Integration testlere geçiyoruz.
@@ -1283,9 +1344,9 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
         });
     }
 }` },
-      { title: "Gerçek HTTP testlerini yaz", how: [{"text": "`ECommerceApi.Tests/IntegrationTests` klasöründe yeni bir `ProductsApiTests.cs` dosyası oluştur ve içini boşalt."}, {"text": "Dosyanın en üstüne şu `using` satırlarını ve namespace'i yaz:", "code": "using System.Net;\nusing System.Net.Http.Json;\nusing ECommerceApi.DTOs;\nusing FluentAssertions;\n\nnamespace ECommerceApi.Tests.IntegrationTests;"}, {"text": "Altına aşağıdaki `ProductsApiTests` sınıfının tamamını yapıştır (constructor ve üç test dahil)."}, {"text": "Çalıştır, 11 test yeşil olmalı:", "code": "dotnet test"}], why: "Routing, middleware, DI kayıtları ve validation ancak uçtan uca çalıştırılınca doğrulanır.", file: "ECommerceApi.Tests/IntegrationTests/ProductsApiTests.cs", language: "csharp", code: String.raw`/*
+      { title: "Gerçek HTTP testlerini yaz", how: [{"text": "`ECommerceApi.Tests/IntegrationTests` klasöründe yeni bir `ProductApiTests.cs` dosyası oluştur ve içini boşalt."}, {"text": "Dosyanın en üstüne şu `using` satırlarını ve namespace'i yaz:", "code": "using System.Net;\nusing System.Net.Http.Json;\nusing ECommerceApi.DTOs;\nusing FluentAssertions;\n\nnamespace ECommerceApi.Tests.IntegrationTests;"}, {"text": "Altına aşağıdaki `ProductApiTests` sınıfının tamamını yapıştır (constructor ve altı test dahil)."}, {"text": "Çalıştır, 16 test yeşil olmalı:", "code": "dotnet test"}], why: "Routing, middleware, DI kayıtları ve veritabanı ancak uçtan uca çalıştırılınca birlikte doğrulanır.", file: "ECommerceApi.Tests/IntegrationTests/ProductApiTests.cs", language: "csharp", code: String.raw`/*
 Şimdi factory'yi kullanarak gerçek HTTP testleri yazıyoruz.
-Dosyamız IntegrationTests/ProductsApiTests.cs.
+Dosyamız IntegrationTests/ProductApiTests.cs.
 
 IClassFixture<CustomWebApplicationFactory> şunu söylüyor:
 Bu sınıftaki bütün testler için factory bir kez oluşturulsun ve paylaşılsın.
@@ -1294,32 +1355,31 @@ Aynı sebeple bu sınıftaki testler aynı InMemory veritabanını görüyor.
 
 Veritabanı boş da başlamıyor.
 Program.cs'teki EnsureCreated, DbContext'teki seed ürünleri de ekliyor.
+Mesela 1 id'li Laptop orada hazır.
 
-Bu dosyada 5 test var, bu adımda 3'ünü yazıyoruz:
+Bu dosyada 6 test var:
 - GetProducts_WithPageSize_AppliesPaging:
-  Unit testte yapamadığımız sayfalamayı burada deniyoruz.
-- CreateProduct_ThenGetById_ReturnsCreatedProduct:
-  POST ile oluşturuyoruz, GET ile geri okuyoruz.
-- CreateProduct_WithInvalidDto_ReturnsBadRequest:
-  Hatalı istek 400 dönüyor mu?
-
-Branch'teki diğer ikisi:
-- GetProducts_ReturnsSeededProductsAsPagedResult:
-  Seed ürünler sayfalı sonuç olarak geliyor mu?
-- GetProductById_WhenIdDoesNotExist_ReturnsProblemDetailsWith404:
-  Controller testindeki 404'ü bu sefer gerçek HTTP ile doğruluyor.
+  Unit testte servis sahteydi; gerçek sayfalamayı burada deniyoruz.
+- GetProductById_WhenProductExists_ReturnsOk:
+  Seed'deki ürünü gerçek HTTP ile okuyoruz.
+- CreateProduct_ReturnsCreated:
+  POST ile ürün oluşturuyoruz.
+- DeleteProduct_WhenProductDoesNotExist_ReturnsNotFound
+- DeleteProduct_WhenProductExists_ReturnsNoContent
+- UpdateProduct_WhenProductExists_ReturnsOk:
+  Controller unit testinde yazmadığımız Delete ve Update'i burada deniyoruz.
 */
 
-public class ProductsApiTests :
-    IClassFixture<CustomWebApplicationFactory>
+public class ProductApiTests : IClassFixture<CustomWebApplicationFactory>
 {
     private readonly HttpClient _client;
 
-    public ProductsApiTests(CustomWebApplicationFactory factory)
+    public ProductApiTests(CustomWebApplicationFactory factory)
     {
         /*
         Factory üzerinden API'ye istek atabileceğimiz
         gerçek bir HttpClient oluşturuyoruz.
+        Dışarıya port açılmıyor; istekler bellekteki test sunucusuna gidiyor.
         */
         _client = factory.CreateClient();
     }
@@ -1328,11 +1388,10 @@ public class ProductsApiTests :
     public async Task GetProducts_WithPageSize_AppliesPaging()
     {
         /*
-        Burada artık service'i mock'lamıyoruz.
-
+        Burada artık hiçbir şeyi mock'lamıyoruz.
         API'ye gerçekten HTTP isteği atıyoruz.
 
-        pageSize=2 verdiğimiz için response içerisinde
+        pageSize=2 verdiğimiz için response içinde
         en fazla iki ürün dönmesini bekliyoruz.
         */
         var response =
@@ -1340,6 +1399,9 @@ public class ProductsApiTests :
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
+        /*
+        ReadFromJsonAsync gelen JSON'ı tekrar C# nesnesine çeviriyor.
+        */
         var page =
             await response.Content
                 .ReadFromJsonAsync<PagedResult<ProductDto>>();
@@ -1349,94 +1411,160 @@ public class ProductsApiTests :
     }
 
     [Fact]
-    public async Task CreateProduct_ThenGetById_ReturnsCreatedProduct()
+    public async Task GetProductById_WhenProductExists_ReturnsOk()
     {
         /*
-        Burada biraz daha gerçek hayata yakın bir senaryo yapıyoruz.
-
-        Önce API üzerinden ürünü oluşturacağız.
-        Sonra dönen id ile tekrar GET isteği atıp
-        ürün gerçekten oluşmuş mu kontrol edeceğiz.
+        1 id'li ürün seed verisinden geliyor, test başlamadan veritabanında var.
         */
-        var yeniUrun = new CreateProductDto
-        {
-            Name = "Entegrasyon Testi Urunu",
-            Price = 199.90m,
-            Stock = 5
-        };
+        var productId = 1;
 
-        var createResponse =
-            await _client.PostAsJsonAsync(
-                "/api/products",
-                yeniUrun);
-
-        createResponse.StatusCode
-            .Should()
-            .Be(HttpStatusCode.Created);
-
-        var created =
-            await createResponse.Content
-                .ReadFromJsonAsync<ProductDto>();
-
-        created!.Id.Should().BeGreaterThan(0);
+        var response = await _client.GetAsync($"/api/products/{productId}");
 
         /*
-        Ürün oluştu.
-        Şimdi aynı ürünü API'den geri isteyelim.
+        Unit testte OkObjectResult tipine bakıyorduk.
+        Burada elimizde gerçek bir HTTP cevabı var:
+        status code'a ve JSON gövdeye bakıyoruz.
         */
-        var getResponse =
-            await _client.GetAsync($"/api/products/{created.Id}");
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        getResponse.StatusCode
-            .Should()
-            .Be(HttpStatusCode.OK);
-
-        var fetched =
-            await getResponse.Content
-                .ReadFromJsonAsync<ProductDto>();
-
-        /*
-        Dönen ürün gerçekten biraz önce oluşturduğumuz ürün mü,
-        onu kontrol ediyoruz.
-        */
-        fetched!.Name.Should().Be("Entegrasyon Testi Urunu");
+        var product = await response.Content.ReadFromJsonAsync<ProductDto>();
+        product.Should().NotBeNull();
+        product!.Id.Should().Be(productId);
     }
 
     [Fact]
-    public async Task CreateProduct_WithInvalidDto_ReturnsBadRequest()
+    public async Task CreateProduct_ReturnsCreated()
     {
         /*
-        Burada özellikle hatalı bir request gönderiyoruz.
+        Gövde olarak ProductDto gönderiyoruz.
+        HTTP'de giden şey C# nesnesi değil, JSON.
 
-        Name boş, price da 0.
-
-        CreateProductDto'da Name için [Required], Price için [Range(0.01, ...)] var.
-        İkisi de bu istekte bozuluyor.
-
-        Controller'daki Create metodunda bir ModelState kontrolü görüyoruz
-        ama istek oraya hiç ulaşmıyor.
-        [ApiController] attribute'u DTO'yu action çalışmadan önce kontrol ediyor
-        ve hata varsa 400'ü kendisi dönüyor.
+        API bu JSON'ı CreateProductDto'ya bağlıyor:
+        Name, Price ve Stock eşleşiyor.
+        Id ve CreatedAt CreateProductDto'da olmadığı için yok sayılıyor.
         */
-        var response =
-            await _client.PostAsJsonAsync(
-                "/api/products",
-                new
-                {
-                    name = "",
-                    price = 0,
-                    stock = 1
-                });
+        var newProduct = new ProductDto
+        {
+            Name = "Test Product",
+            Price = 100,
+            Stock = 10
+        };
+
+        var response = await _client.PostAsJsonAsync("/api/products", newProduct);
 
         /*
-        Validation çalıştıysa API'nin 400 Bad Request dönmesini bekliyoruz.
+        Bu sefer istek routing, validation, controller, servis ve repository'den
+        geçip InMemory veritabanına gerçekten yazıldı.
+
+        201 Created bekliyoruz ve veritabanının ürüne bir Id vermiş olması lazım.
         */
-        response.StatusCode
-            .Should()
-            .Be(HttpStatusCode.BadRequest);
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        var createdProduct = await response.Content.ReadFromJsonAsync<ProductDto>();
+        createdProduct.Should().NotBeNull();
+        createdProduct!.Id.Should().BeGreaterThan(0);
+        createdProduct.Name.Should().Be(newProduct.Name);
+    }
+
+    [Fact]
+    public async Task DeleteProduct_WhenProductDoesNotExist_ReturnsNotFound()
+    {
+        /*
+        Veritabanında olmayan bir id ile silme isteği atıyoruz.
+
+        Servis false dönüyor, controller da bunu NotFound()'a çeviriyor.
+        Unit testlerde bu zinciri parça parça görmüştük;
+        burada hepsi birlikte çalışıyor.
+        */
+        var nonExistentProductId = 9999;
+
+        var response = await _client.DeleteAsync($"/api/products/{nonExistentProductId}");
+
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task DeleteProduct_WhenProductExists_ReturnsNoContent()
+    {
+        /*
+        Burada önemli bir tercih var.
+
+        Seed'deki Laptop'u silmiyoruz; önce kendi ürünümüzü oluşturuyoruz.
+        Çünkü bu sınıftaki testler aynı veritabanını paylaşıyor
+        ve hangi sırayla çalışacakları garanti değil.
+
+        Laptop'u silseydik, GetProductById testi ondan sonra çalışırsa
+        ürünü bulamayıp patlayabilirdi.
+        Her test kendi verisini kendisi hazırlarsa testler birbirini etkilemiyor.
+        */
+        var newProduct = new ProductDto
+        {
+            Name = "Product to Delete",
+            Price = 50,
+            Stock = 5
+        };
+
+        var createResponse = await _client.PostAsJsonAsync("/api/products", newProduct);
+        createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        var createdProduct = await createResponse.Content.ReadFromJsonAsync<ProductDto>();
+        createdProduct.Should().NotBeNull();
+        var productIdToDelete = createdProduct!.Id;
+
+        /*
+        Şimdi oluşturduğumuz ürünü siliyoruz.
+        Başarılı silmede gövde yok, 204 NoContent bekliyoruz.
+        */
+        var deleteResponse = await _client.DeleteAsync($"/api/products/{productIdToDelete}");
+
+        deleteResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
+    }
+
+    [Fact]
+    public async Task UpdateProduct_WhenProductExists_ReturnsOk()
+    {
+        /*
+        Silme testindeki gibi, önce güncelleyeceğimiz ürünü kendimiz oluşturuyoruz.
+        */
+        var newProduct = new ProductDto
+        {
+            Name = "Product to Update",
+            Price = 75,
+            Stock = 15
+        };
+
+        var createResponse = await _client.PostAsJsonAsync("/api/products", newProduct);
+        createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        var createdProduct = await createResponse.Content.ReadFromJsonAsync<ProductDto>();
+        createdProduct.Should().NotBeNull();
+        var productIdToUpdate = createdProduct!.Id;
+
+        /*
+        Yeni değerlerle PUT isteği atıyoruz.
+        API bu JSON'ı UpdateProductDto'ya bağlıyor.
+        */
+        var updateDto = new ProductDto
+        {
+            Name = "Updated Product Name",
+            Price = 80,
+            Stock = 20
+        };
+
+        var updateResponse = await _client.PutAsJsonAsync($"/api/products/{productIdToUpdate}", updateDto);
+
+        /*
+        200 OK ve gövdede güncellenmiş ürün bekliyoruz.
+        Adın değişmiş olması, güncellemenin veritabanına kadar gittiğini gösteriyor.
+        */
+        updateResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var updatedProduct = await updateResponse.Content.ReadFromJsonAsync<ProductDto>();
+        updatedProduct.Should().NotBeNull();
+        updatedProduct!.Name.Should().Be(updateDto.Name);
     }
 }` },
-      { title: "Testleri çalıştır", how: [{"text": "Komutları solution'ın kök klasöründe çalıştır."}, {"text": "Beklenen sonuç: sadece bu sayfadaki testleri yazdıysan `Passed: 11`, branch'teki dosyaların tamamıyla `Passed: 17`."}, {"text": "Coverage raporu `ECommerceApi.Tests/TestResults/<guid>/coverage.cobertura.xml` olarak oluşur. `TestResults/` klasörü `.gitignore`'da olduğu için commit'e girmez."}, {"text": "Kendi yazdığını referansla karşılaştırmak için:", "code": "git diff origin/ref/s08-testing-v2 -- ECommerceApi ECommerceApi.Tests"}], why: "Unit ve integration suite aynı komutla derlenir ve yürütülür; coverage hedef değil harita olarak okunur.", file: "Terminal", language: "bash", code: String.raw`# Testleri yazdık.
+      { title: "Testleri çalıştır", how: [{"text": "Komutları solution'ın kök klasöründe çalıştır."}, {"text": "Beklenen sonuç: `Passed: 16` (6 servis, 4 controller, 6 integration testi). Bu sayfadaki testler branch'teki testlerin aynısı."}, {"text": "Coverage raporu `ECommerceApi.Tests/TestResults/<guid>/coverage.cobertura.xml` olarak oluşur. `TestResults/` klasörü `.gitignore`'da olduğu için commit'e girmez."}, {"text": "Kendi yazdığını referansla karşılaştırmak için:", "code": "git diff origin/ref/s08-testing-v2 -- ECommerceApi ECommerceApi.Tests"}], why: "Unit ve integration suite aynı komutla derlenir ve yürütülür; coverage hedef değil harita olarak okunur.", file: "Terminal", language: "bash", code: String.raw`# Testleri yazdık.
 # Şimdi bir çalıştırıp bakalım.
 #
 # Solution'ın olduğu ana klasörde dotnet test diyoruz.
@@ -1452,9 +1580,8 @@ public class ProductsApiTests :
 # Eğer bir test patlarsa hangi testin neden patladığını
 # çıktıdan görebiliriz.
 #
-# Sadece bu sayfadaki testleri yazdıysak 11 test görmemiz lazım.
-# Branch'in tamamında 16 test metodu var;
-# Theory iki veriyle iki kez çalıştığı için özet 17 test diyecek.
+# Bu sayfadaki testlerin hepsini yazdıysak özet 16 test diyecek:
+# 6 servis, 4 controller ve 6 integration testi.
 dotnet test
 
 # Bir de coverage tarafına bakalım.
