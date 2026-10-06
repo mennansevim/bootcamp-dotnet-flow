@@ -702,7 +702,7 @@ public async Task<ActionResult<TransferResponseDto>> Transfer(
             { title: "Integration Testing", description: "WebApplicationFactory gerçek middleware ve routing pipeline'ını izole bir veri ortamıyla bellekte çalıştırır.", points: ["`WebApplicationFactory<Program>` ile test sunucusu", "Testlere özel InMemory veritabanı", "Gerçek HTTP isteği ve middleware pipeline'ı"] },
             { title: "Test Araçları ve AI", description: "FluentAssertions okunabilir doğrulamalar sağlarken AI çıktıları insan incelemesi ve çalışan testlerle doğrulanmalıdır.", points: ["FluentAssertions 7.x ücretsiz lisansla kullanılır", "Code coverage hedef değil, harita olarak okunur", "AI üretimi testler okunmadan ve çalıştırılmadan kabul edilmez"] }
     ],
-        checklist: ["xUnit test projesini net8.0 hedefiyle oluştur ve solution'a ekle.", "Moq, FluentAssertions 7, Mvc.Testing ve EF InMemory paketlerini kur.", "Program sınıfını public partial yap, migration adımını IsRelational ile koru.", "ProductService'in GetById, Delete, Create ve Update davranışlarını unit testle doğrula.", "ProductsController'ın GetById 200 / 404 ProblemDetails, GetAll 200 ve Create 201 sözleşmesini doğrula.", "CustomWebApplicationFactory ile izole InMemory ortamı kur.", "Gerçek HTTP üzerinden sayfalama, okuma, oluşturma, güncelleme ve silme senaryolarını test et.", "dotnet test ile tüm testleri çalıştır, isteğe bağlı coverage raporu al."],
+        checklist: ["xUnit test projesini net8.0 hedefiyle oluştur ve solution'a ekle.", "Moq, FluentAssertions 7, Mvc.Testing ve EF InMemory paketlerini kur.", "Program sınıfını public partial yap, migration adımını IsRelational ile koru.", "ProductService'in GetById, Delete, Create ve Update davranışlarını unit testle doğrula.", "ProductsController'ın GetById 200 / 404 ProblemDetails, GetAll 200 ve Create 201 sözleşmesini doğrula.", "TestAuthHandler ile yetki isteyen endpoint'leri testte erişilebilir yap.", "CustomWebApplicationFactory ile izole InMemory ortamı, test JWT secret'ı ve test kimliği kur.", "Gerçek HTTP üzerinden sayfalama, okuma, oluşturma, güncelleme ve silme senaryolarını test et.", "dotnet test ile tüm testleri çalıştır, isteğe bağlı coverage raporu al."],
     code: [
       { title: "Test projesini ve paketleri kur", how: [{"text": "Terminali solution'ın kök klasöründe aç (`ECommerceSolution.sln` dosyasının bulunduğu klasör). Aşağıdaki komutları yukarıdan aşağıya sırayla çalıştır."}, {"text": "Makinede .NET 10 SDK da kuruluysa `dotnet new xunit` komutundaki `-f net8.0` kısmını atlama. Atlarsan test projesi net10.0 hedefler ve net8.0 olan API projesiyle uyuşmaz."}, {"text": "Komutlar bitince her şeyin derlendiğini kontrol et:", "code": "dotnet build"}, {"text": "Sonuç: `ECommerceApi.Tests/` altında `ECommerceApi.Tests.csproj`, boş `UnitTests/` ve `IntegrationTests/` klasörleri olur. Boş klasörler Rider'da ve `git status` çıktısında görünmez, içine ilk dosyayı koyunca belirir."}], why: "Test kodu canlıya çıkan derlemeye karışmasın diye ayrı bir assembly açılır; referans tek yönlüdür.", file: "Terminal", language: "bash", code: String.raw`# Arkadaşlar, bütün komutları solution'ın olduğu ana klasörde çalıştırıyoruz.
 # Yani ECommerceSolution.sln dosyasını gördüğümüz klasörde olmamız lazım.
@@ -842,7 +842,7 @@ rm ECommerceApi.Tests/UnitTest1.cs
 #
 # -p sayesinde klasör zaten varsa mkdir hata vermeden devam eder.
 mkdir -p ECommerceApi.Tests/UnitTests ECommerceApi.Tests/IntegrationTests` },
-      { title: "Program sınıfını teste aç", how: [{"text": "`ECommerceApi/Program.cs` dosyasını aç. `// DATABASE INITIALIZATION` başlığının altındaki `using (var scope = app.Services.CreateScope())` bloğunu bul."}, {"text": "Bloğun içindeki şu satırı bul:", "code": "    dbContext.Database.Migrate();"}, {"text": "Bu tek satırı sil, yerine aşağıdakini yapıştır (blok `{ }` içinde kalmalı):", "code": "    if (dbContext.Database.IsRelational())\n    {\n        dbContext.Database.Migrate();\n    }\n    else\n    {\n        dbContext.Database.EnsureCreated();\n    }"}, {"text": "Dosyanın en sonuna in. `app.Run();` satırının altına bir boş satır bırak ve şunu ekle:", "code": "public partial class Program { }"}, {"text": "Aradaki `// MIDDLEWARE PIPELINE` bölümüne (`app.UseExceptionHandling()` … `app.MapControllers()`) dokunma. Aşağıdaki kod bloğu iki değişikliği yan yana gösteriyor; aradaki satırlar kısalık için atlandı."}, {"text": "Derlendiğini kontrol et:", "code": "dotnet build"}], why: "Top-level statements ile üretilen Program internal'dır; ayrıca InMemory sağlayıcıda migration çalıştırılamaz.", file: "ECommerceApi/Program.cs", language: "csharp", code: String.raw`/*
+      { title: "Program sınıfını teste aç", how: [{"text": "`ECommerceApi/Program.cs` dosyasını aç. `// DATABASE INITIALIZATION` başlığının altındaki `using (var scope = app.Services.CreateScope())` bloğunu bul."}, {"text": "Bloğun içindeki şu satırı bul:", "code": "    dbContext.Database.Migrate();"}, {"text": "Bu tek satırı sil, yerine aşağıdakini yapıştır (blok `{ }` içinde kalmalı). Hemen altındaki `await IdentitySeeder.SeedAsync(scope.ServiceProvider);` satırına dokunma, yerinde kalsın:", "code": "    if (dbContext.Database.IsRelational())\n    {\n        dbContext.Database.Migrate();\n    }\n    else\n    {\n        dbContext.Database.EnsureCreated();\n    }"}, {"text": "Dosyanın en sonuna in. `app.Run();` satırının altına bir boş satır bırak ve şunu ekle:", "code": "public partial class Program { }"}, {"text": "Aradaki `// MIDDLEWARE PIPELINE` bölümüne (`app.UseExceptionHandling()` … `app.MapControllers()`) dokunma. Aşağıdaki kod bloğu iki değişikliği yan yana gösteriyor; aradaki satırlar kısalık için atlandı."}, {"text": "Derlendiğini kontrol et:", "code": "dotnet build"}], why: "Top-level statements ile üretilen Program internal'dır; ayrıca InMemory sağlayıcıda migration çalıştırılamaz.", file: "ECommerceApi/Program.cs", language: "csharp", code: String.raw`/*
 Test projesine geçmeden önce API tarafında iki küçük dokunuş yapıyoruz.
 Burada test kodu yazmıyoruz; sadece uygulamayı test edilebilir hale getiriyoruz.
 
@@ -861,7 +861,7 @@ using (var scope = app.Services.CreateScope())
     var dbContext = scope.ServiceProvider.GetRequiredService<BootcampDbContext>();
 
     /*
-    S7'de burada tek satır vardı: dbContext.Database.Migrate();
+    S7'de burada dbContext.Database.Migrate(); satırı vardı.
     Uygulama SQLite ile çalıştığı için bu yeterliydi.
 
     Sorun şu: integration testlerde SQLite'ı çıkarıp yerine InMemory koyacağız.
@@ -881,6 +881,12 @@ using (var scope = app.Services.CreateScope())
     {
         dbContext.Database.EnsureCreated();
     }
+
+    /*
+    Bu satır S5'ten geliyor: rolleri ve demo kullanıcılarını oluşturuyor.
+    Ona dokunmuyoruz; InMemory'de de sorunsuz çalışıyor.
+    */
+    await IdentitySeeder.SeedAsync(scope.ServiceProvider);
 }
 
 app.Run();
@@ -1277,7 +1283,53 @@ public class ProductsControllerTests
         createdAtActionResult!.Value.Should().BeEquivalentTo(createdProductDto);
     }
 }` },
-      { title: "Test fabrikasını hazırla", how: [{"text": "`ECommerceApi.Tests/IntegrationTests` klasöründe yeni bir `CustomWebApplicationFactory.cs` dosyası oluştur ve içini boşalt."}, {"text": "Dosyanın en üstüne şu `using` satırlarını ve namespace'i yaz:", "code": "using ECommerceApi.Data;\nusing Microsoft.AspNetCore.Hosting;\nusing Microsoft.AspNetCore.Mvc.Testing;\nusing Microsoft.EntityFrameworkCore;\nusing Microsoft.Extensions.DependencyInjection;\n\nnamespace ECommerceApi.Tests.IntegrationTests;"}, {"text": "Altına aşağıdaki `CustomWebApplicationFactory` sınıfının tamamını yapıştır."}, {"text": "Bu sınıf tek başına test değil, sadece derlendiğini kontrol et. `Program` sınıfına erişilemiyor hatası alırsan 2. adımdaki `public partial class Program { }` satırını kontrol et.", "code": "dotnet build"}], why: "Gerçek pipeline ayakta kalır; yalnızca veri katmanı her test sınıfına özel izole InMemory veritabanıyla değiştirilir.", file: "ECommerceApi.Tests/IntegrationTests/CustomWebApplicationFactory.cs", language: "csharp", code: String.raw`/*
+      { title: "Test kimliğini hazırla", how: [{"text": "`ECommerceApi.Tests/IntegrationTests` klasöründe yeni bir `TestAuthHandler.cs` dosyası oluştur ve içini boşalt."}, {"text": "Dosyanın en üstüne şu `using` satırlarını ve namespace'i yaz:", "code": "using System.Security.Claims;\nusing System.Text.Encodings.Web;\nusing ECommerceApi.Auth;\nusing Microsoft.AspNetCore.Authentication;\nusing Microsoft.Extensions.Logging;\nusing Microsoft.Extensions.Options;\n\nnamespace ECommerceApi.Tests.IntegrationTests;"}, {"text": "Altına aşağıdaki `TestAuthHandler` sınıfının tamamını yapıştır."}, {"text": "Derlendiğini kontrol et:", "code": "dotnet build"}], why: "S5'ten beri ürün ekleme, güncelleme ve silme permission istiyor; testte login olup token almak yerine her isteği tüm izinlere sahip bir admin olarak doğrularız.", file: "ECommerceApi.Tests/IntegrationTests/TestAuthHandler.cs", language: "csharp", code: String.raw`/*
+Integration testlere geçmeden önce bir engeli kaldırmamız gerekiyor.
+
+S5'te ürün ekleme, güncelleme ve silme endpoint'lerine
+[Authorize(Policy = ...)] koyduk. Token'ında "products.write" ya da
+"products.delete" izni olmayan istek 401 alıyor.
+
+Testlerde login olup token almakla uğraşmak istemiyoruz;
+burada ürün API'sini test ediyoruz, login akışını değil.
+
+Bu sınıf sahte bir authentication şeması:
+gelen her isteği "tüm izinlere sahip admin" olarak doğruluyor.
+Sadece test projesinde yaşıyor, gerçek uygulamaya asla girmiyor.
+*/
+
+public class TestAuthHandler : AuthenticationHandler<AuthenticationSchemeOptions>
+{
+    public const string SchemeName = "Test";
+
+    public TestAuthHandler(
+        IOptionsMonitor<AuthenticationSchemeOptions> options,
+        ILoggerFactory logger,
+        UrlEncoder encoder)
+        : base(options, logger, encoder)
+    {
+    }
+
+    protected override Task<AuthenticateResult> HandleAuthenticateAsync()
+    {
+        /*
+        Kullanıcının kimliği ve S5'teki tüm permission claim'leri.
+        Policy'ler bu claim'lere bakıp isteği içeri alıyor.
+        */
+        var claims = new List<Claim>
+        {
+            new(ClaimTypes.NameIdentifier, "1"),
+            new(ClaimTypes.Name, "test-admin")
+        };
+        claims.AddRange(Permissions.All.Select(p => new Claim(CustomClaimTypes.Permission, p)));
+
+        var identity = new ClaimsIdentity(claims, SchemeName);
+        var ticket = new AuthenticationTicket(new ClaimsPrincipal(identity), SchemeName);
+
+        return Task.FromResult(AuthenticateResult.Success(ticket));
+    }
+}` },
+      { title: "Test fabrikasını hazırla", how: [{"text": "`ECommerceApi.Tests/IntegrationTests` klasöründe yeni bir `CustomWebApplicationFactory.cs` dosyası oluştur ve içini boşalt."}, {"text": "Dosyanın en üstüne şu `using` satırlarını ve namespace'i yaz:", "code": "using ECommerceApi.Data;\nusing Microsoft.AspNetCore.Authentication;\nusing Microsoft.AspNetCore.Hosting;\nusing Microsoft.AspNetCore.Mvc.Testing;\nusing Microsoft.EntityFrameworkCore;\nusing Microsoft.Extensions.DependencyInjection;\n\nnamespace ECommerceApi.Tests.IntegrationTests;"}, {"text": "Altına aşağıdaki `CustomWebApplicationFactory` sınıfının tamamını yapıştır."}, {"text": "Bu sınıf tek başına test değil, sadece derlendiğini kontrol et. `Program` sınıfına erişilemiyor hatası alırsan 2. adımdaki `public partial class Program { }` satırını kontrol et; `TestAuthHandler` bulunamıyorsa bir önceki adıma bak.", "code": "dotnet build"}], why: "Gerçek pipeline ayakta kalır; yalnızca veri katmanı izole InMemory veritabanıyla, kimlik doğrulama da test kimliğiyle değiştirilir.", file: "ECommerceApi.Tests/IntegrationTests/CustomWebApplicationFactory.cs", language: "csharp", code: String.raw`/*
 Integration testlere geçiyoruz.
 Bu sefer hiçbir şeyi mock'lamayacağız; API'yi gerçekten ayağa kaldıracağız.
 
@@ -1289,10 +1341,11 @@ WebApplicationFactory'den türüyor ve uygulamayı kurarken sadece veritabanı k
 Routing, middleware, controller, servis, repository, hepsi gerçek kalıyor.
 
 İçinde tek bir metot var: ConfigureWebHost.
-Üç şey yapıyor:
+Dört şey yapıyor:
 1) Ortamı Testing yapıyor.
-2) SQLite DbContext kaydını siliyor.
-3) Yerine InMemory DbContext ekliyor.
+2) Uygulamaya sahte bir JWT secret veriyor.
+3) SQLite DbContext kaydını InMemory ile değiştiriyor.
+4) Kimlik doğrulamayı bir önceki adımdaki TestAuthHandler'a çeviriyor.
 */
 
 public class CustomWebApplicationFactory : WebApplicationFactory<Program>
@@ -1315,6 +1368,13 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
         Testing'de, sadece geliştirmede açılan Swagger gibi parçalar devreye girmiyor.
         */
         builder.UseEnvironment("Testing");
+
+        /*
+        S5'ten beri Program.cs, JWT secret yoksa uygulamayı hiç başlatmıyor.
+        Gerçek secret User Secrets'ta duruyor; testte sahte ama
+        en az 32 karakterlik bir değer veriyoruz.
+        */
+        builder.UseSetting("JwtSettings:SecretKey", "IntegrationTest_SecretKey_Min32Characters!");
 
         builder.ConfigureServices(services =>
         {
@@ -1341,6 +1401,19 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
             */
             services.AddDbContext<BootcampDbContext>(options =>
                 options.UseInMemoryDatabase(_databaseName));
+
+            /*
+            Varsayılan authentication'ı JWT'den TestAuthHandler'a çeviriyoruz.
+
+            Böylece POST, PUT ve DELETE testleri token almadan
+            yetki isteyen endpoint'lere istek atabiliyor.
+            */
+            services.AddAuthentication(options =>
+                {
+                    options.DefaultAuthenticateScheme = TestAuthHandler.SchemeName;
+                    options.DefaultChallengeScheme = TestAuthHandler.SchemeName;
+                })
+                .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>(TestAuthHandler.SchemeName, _ => { });
         });
     }
 }` },
