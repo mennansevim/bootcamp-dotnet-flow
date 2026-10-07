@@ -704,144 +704,30 @@ public async Task<ActionResult<TransferResponseDto>> Transfer(
     ],
         checklist: ["xUnit test projesini net8.0 hedefiyle oluştur ve solution'a ekle.", "Moq, FluentAssertions 7, Mvc.Testing ve EF InMemory paketlerini kur.", "Program sınıfını public partial yap, migration adımını IsRelational ile koru.", "ProductService'in GetById, Delete, Create ve Update davranışlarını unit testle doğrula.", "ProductsController'ın GetById 200 / 404 ProblemDetails, GetAll 200 ve Create 201 sözleşmesini doğrula.", "TestAuthHandler ile yetki isteyen endpoint'leri testte erişilebilir yap.", "CustomWebApplicationFactory ile izole InMemory ortamı, test JWT secret'ı ve test kimliği kur.", "Gerçek HTTP üzerinden sayfalama, okuma, oluşturma, güncelleme ve silme senaryolarını test et.", "dotnet test ile tüm testleri çalıştır, isteğe bağlı coverage raporu al."],
     code: [
-      { title: "Test projesini ve paketleri kur", how: [{"text": "Terminali solution'ın kök klasöründe aç (`ECommerceSolution.sln` dosyasının bulunduğu klasör). Aşağıdaki komutları yukarıdan aşağıya sırayla çalıştır."}, {"text": "Makinede .NET 10 SDK da kuruluysa `dotnet new xunit` komutundaki `-f net8.0` kısmını atlama. Atlarsan test projesi net10.0 hedefler ve net8.0 olan API projesiyle uyuşmaz."}, {"text": "Komutlar bitince her şeyin derlendiğini kontrol et:", "code": "dotnet build"}, {"text": "Sonuç: `ECommerceApi.Tests/` altında `ECommerceApi.Tests.csproj`, boş `UnitTests/` ve `IntegrationTests/` klasörleri olur. Boş klasörler Rider'da ve `git status` çıktısında görünmez, içine ilk dosyayı koyunca belirir."}], why: "Test kodu canlıya çıkan derlemeye karışmasın diye ayrı bir assembly açılır; referans tek yönlüdür.", file: "Terminal", language: "bash", code: String.raw`# Arkadaşlar, bütün komutları solution'ın olduğu ana klasörde çalıştırıyoruz.
-# Yani ECommerceSolution.sln dosyasını gördüğümüz klasörde olmamız lazım.
-#
-# Yanlış klasörde olursak birazdan yazacağımız path'ler çalışmaz.
-# O yüzden başlamadan önce bir kontrol edelim.
-
-# Şu anda elimizde bir test projesi yok.
-# İlk olarak test projemizi oluşturalım.
-#
-# dotnet new xunit diyerek .NET'in hazır xUnit template'ini kullanıyoruz.
-#
-# -n ile projemizin adını ECommerceApi.Tests yapıyoruz.
-# Bu komut aynı isimde bir klasör de oluşturacak.
-#
-# İçerisine csproj dosyası, örnek bir UnitTest1.cs
-# ve xUnit'in çalışması için gereken temel paketler gelecek.
-#
-# Buradaki -f net8.0 önemli.
-# API'miz .NET 8 olduğu için test projemizin de .NET 8 olmasını istiyoruz.
-#
-# Bunu özellikle belirtmezsek, makinede daha yeni bir SDK varsa
-# projeyi örneğin net10.0 ile oluşturabilir.
+      { title: "Test projesini ve paketleri kur", how: [{"text": "Terminali solution'ın kök klasöründe aç (`ECommerceSolution.sln` dosyasının bulunduğu klasör). Aşağıdaki dört grubu sırayla çalıştır."}, {"text": "Hepsini tek seferde çalıştırmak istersen:", "code": "dotnet new xunit -n ECommerceApi.Tests -f net8.0 && dotnet sln add ECommerceApi.Tests/ECommerceApi.Tests.csproj && dotnet add ECommerceApi.Tests reference ECommerceApi/ECommerceApi.csproj && dotnet add ECommerceApi.Tests package Moq --version 4.20.72 && dotnet add ECommerceApi.Tests package FluentAssertions --version 7.0.0 && dotnet add ECommerceApi.Tests package Microsoft.AspNetCore.Mvc.Testing --version 8.0.0 && dotnet add ECommerceApi.Tests package Microsoft.EntityFrameworkCore.InMemory --version 8.0.0 && rm ECommerceApi.Tests/UnitTest1.cs && mkdir -p ECommerceApi.Tests/UnitTests ECommerceApi.Tests/IntegrationTests && touch ECommerceApi.Tests/UnitTests/UnitTest1.cs ECommerceApi.Tests/IntegrationTests/IntegrationTest1.cs && dotnet build"}, {"text": "Sonuç: `ECommerceApi.Tests/` altında `UnitTests/UnitTest1.cs` ve `IntegrationTests/IntegrationTest1.cs` boş dosyaları olur, `dotnet build` hatasız biter."}], why: "Test kodu canlıya çıkan derlemeye karışmasın diye ayrı bir assembly açılır; referans tek yönlüdür.", file: "Terminal", language: "bash", code: String.raw`# 1. Test projesini oluştur.
+# -f net8.0 önemli: API .NET 8 olduğu için test projesi de net8.0 olmalı.
 dotnet new xunit -n ECommerceApi.Tests -f net8.0
 
-# Test projemiz oluştu ama solution henüz bu projeyi tanımıyor.
-#
-# dotnet sln add ile oluşturduğumuz test projesini solution'a ekliyoruz.
-#
-# Bundan sonra solution'ın ana klasöründe dotnet build veya dotnet test
-# çalıştırdığımızda test projemiz de işin içine girecek.
-#
-# Rider'da da API projesinin yanında test projemizi görebileceğiz.
+# 2. Solution'a ekle ve API'ye bağla.
+# Bağımlılık tek yönlü: test projesi API'yi bilir, API test projesini bilmez.
 dotnet sln add ECommerceApi.Tests/ECommerceApi.Tests.csproj
-
-# Şimdi test projemizin, test edeceği API projesini tanıması gerekiyor.
-#
-# Mesela ProductService'e veya ProductsController'a erişmek istiyorsak
-# test projesinden API projesine reference vermemiz lazım.
-#
-# Burada önemli bir nokta var:
-# Bağımlılık tek yönlü.
-#
-# Test projesi API'yi biliyor ama API projesi test projesini bilmiyor.
-#
-# Dolayısıyla production'a çıkan uygulamanın içerisine
-# test kodlarımız karışmıyor.
 dotnet add ECommerceApi.Tests reference ECommerceApi/ECommerceApi.csproj
 
-# Şimdi test yazarken kullanacağımız birkaç paketi ekleyelim.
-#
-# Versiyonları da özellikle sabitliyoruz.
-# Böylece herkesin makinesinde aynı paket versiyonlarıyla çalışmış oluyoruz.
-
-# İlk paketimiz Moq.
-#
-# Unit test yazarken ProductService'i mümkün olduğunca tek başına
-# test etmek istiyoruz.
-#
-# Ama ProductService repository'ye,
-# repository de normalde veritabanına bağlı.
-#
-# Biz burada gerçek veritabanına gitmek istemiyoruz.
-#
-# Moq ile sahte bir repository oluşturabiliyoruz.
-#
-# Mesela:
-# "GetByIdAsync çağrılırsa bana şu ürünü dön"
-# diyebiliyoruz.
-#
-# Böylece veritabanıyla uğraşmadan sadece
-# ProductService'in davranışını test ediyoruz.
+# 3. Paketleri ekle.
+# Moq: sahte bağımlılık. FluentAssertions: okunur assert (8.x ticari lisans istediği için 7.0.0).
+# Mvc.Testing: API'yi bellekte ayağa kaldırır. InMemory: testlere özel geçici veritabanı.
 dotnet add ECommerceApi.Tests package Moq --version 4.20.72
-
-# İkinci paketimiz FluentAssertions.
-#
-# Bu paket assertion'ları daha okunabilir yazmamızı sağlıyor.
-#
-# Mesela:
-#
-# Assert.Equal(1, result.Id)
-#
-# yerine:
-#
-# result.Id.Should().Be(1)
-#
-# yazabiliyoruz.
-#
-# Okuması daha rahat oluyor.
-# Test patladığında verdiği hata mesajları da genelde daha anlaşılır.
-#
-# Burada 7.0.0 kullanıyoruz.
-# Çünkü 8. sürümden itibaren lisans tarafında ticari kullanım için
-# dikkat etmemiz gereken değişiklikler var.
 dotnet add ECommerceApi.Tests package FluentAssertions --version 7.0.0
-
-# Üçüncü paketimiz Microsoft.AspNetCore.Mvc.Testing.
-#
-# Integration test tarafında asıl önemli paketlerden biri bu.
-#
-# İçerisindeki WebApplicationFactory sayesinde API'mizi
-# gerçekten dışarıya bir port açmadan test ortamında ayağa kaldırabiliyoruz.
-#
-# Sonra normal bir HttpClient kullanıp API'ye istek atıyoruz.
-#
-# Yani routing, middleware, model validation gibi parçalar da
-# işin içine giriyor.
-#
-# Bu yüzden controller'ı tek başına test etmekten daha gerçekçi
-# bir senaryo oluşturmuş oluyoruz.
 dotnet add ECommerceApi.Tests package Microsoft.AspNetCore.Mvc.Testing --version 8.0.0
-
-# Son paketimiz EF Core InMemory provider.
-#
-# Integration test sırasında gerçek SQLite veritabanımızı kullanmak istemiyoruz.
-# Çünkü test verileri gerçek database'e karışabilir.
-#
-# Bunun yerine test sırasında bellekte geçici bir database oluşturuyoruz.
-#
-# Test ortamı kapandığında bu database de gidiyor.
-# Diskte herhangi bir test verisi bırakmıyoruz.
 dotnet add ECommerceApi.Tests package Microsoft.EntityFrameworkCore.InMemory --version 8.0.0
 
-# xUnit template'i bize UnitTest1.cs diye örnek bir dosya oluşturmuştu.
-#
-# Bu dosya bizim için bir şey ifade etmiyor.
-# O yüzden siliyoruz.
+# 4. Klasör yapısını kur ve derle.
+# Şablonun örnek testini sil, UnitTests ve IntegrationTests klasörlerini aç.
+# Boş klasör Rider'da görünmez, o yüzden içine birer boş dosya koyuyoruz.
 rm ECommerceApi.Tests/UnitTest1.cs
-
-# Son olarak testleri iki gruba ayıralım.
-#
-# UnitTests klasörüne tek bir sınıfı veya davranışı
-# izole şekilde test ettiğimiz hızlı testleri koyacağız.
-#
-# IntegrationTests klasörüne ise API'nin daha fazla parçasını
-# birlikte çalıştırdığımız testleri koyacağız.
-#
-# -p sayesinde klasör zaten varsa mkdir hata vermeden devam eder.
-mkdir -p ECommerceApi.Tests/UnitTests ECommerceApi.Tests/IntegrationTests` },
+mkdir -p ECommerceApi.Tests/UnitTests ECommerceApi.Tests/IntegrationTests
+touch ECommerceApi.Tests/UnitTests/UnitTest1.cs ECommerceApi.Tests/IntegrationTests/IntegrationTest1.cs
+dotnet build` },
       { title: "Program sınıfını teste aç", how: [{"text": "`ECommerceApi/Program.cs` dosyasını aç. `// DATABASE INITIALIZATION` başlığının altındaki `using (var scope = app.Services.CreateScope())` bloğunu bul."}, {"text": "Bloğun içindeki şu satırı bul:", "code": "    dbContext.Database.Migrate();"}, {"text": "Bu tek satırı sil, yerine aşağıdakini yapıştır (blok `{ }` içinde kalmalı). Hemen altındaki `await IdentitySeeder.SeedAsync(scope.ServiceProvider);` satırına dokunma, yerinde kalsın:", "code": "    if (dbContext.Database.IsRelational())\n    {\n        dbContext.Database.Migrate();\n    }\n    else\n    {\n        dbContext.Database.EnsureCreated();\n    }"}, {"text": "Dosyanın en sonuna in. `app.Run();` satırının altına bir boş satır bırak ve şunu ekle:", "code": "public partial class Program { }"}, {"text": "Aradaki `// MIDDLEWARE PIPELINE` bölümüne (`app.UseExceptionHandling()` … `app.MapControllers()`) dokunma. Aşağıdaki kod bloğu iki değişikliği yan yana gösteriyor; aradaki satırlar kısalık için atlandı."}, {"text": "Derlendiğini kontrol et:", "code": "dotnet build"}], why: "Top-level statements ile üretilen Program internal'dır; ayrıca InMemory sağlayıcıda migration çalıştırılamaz.", file: "ECommerceApi/Program.cs", language: "csharp", code: String.raw`/*
 Test projesine geçmeden önce API tarafında iki küçük dokunuş yapıyoruz.
 Burada test kodu yazmıyoruz; sadece uygulamayı test edilebilir hale getiriyoruz.
