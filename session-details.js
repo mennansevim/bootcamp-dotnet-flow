@@ -704,16 +704,20 @@ public async Task<ActionResult<TransferResponseDto>> Transfer(
     ],
         checklist: ["xUnit test projesini net8.0 hedefiyle oluştur ve solution'a ekle.", "Moq, FluentAssertions 7, Mvc.Testing ve EF InMemory paketlerini kur.", "Program sınıfını public partial yap, migration adımını IsRelational ile koru.", "ProductService'in GetById, Delete, Create ve Update davranışlarını unit testle doğrula.", "ProductsController'ın GetById 200 / 404 ProblemDetails, GetAll 200 ve Create 201 sözleşmesini doğrula.", "TestAuthHandler ile yetki isteyen endpoint'leri testte erişilebilir yap.", "CustomWebApplicationFactory ile izole InMemory ortamı, test JWT secret'ı ve test kimliği kur.", "Gerçek HTTP üzerinden sayfalama, okuma, oluşturma, güncelleme ve silme senaryolarını test et.", "dotnet test ile tüm testleri çalıştır, isteğe bağlı coverage raporu al."],
     code: [
-      { title: "Test projesini ve paketleri kur", how: [{"text": "Terminali solution'ın kök klasöründe aç (`ECommerceSolution.sln` dosyasının bulunduğu klasör). Aşağıdaki dört grubu sırayla çalıştır."}, {"text": "Hepsini tek seferde çalıştırmak istersen:", "code": "dotnet new xunit -n ECommerceApi.Tests -f net8.0 && dotnet sln add ECommerceApi.Tests/ECommerceApi.Tests.csproj && dotnet add ECommerceApi.Tests reference ECommerceApi/ECommerceApi.csproj && dotnet add ECommerceApi.Tests package Moq --version 4.20.72 && dotnet add ECommerceApi.Tests package FluentAssertions --version 7.0.0 && dotnet add ECommerceApi.Tests package Microsoft.AspNetCore.Mvc.Testing --version 8.0.0 && dotnet add ECommerceApi.Tests package Microsoft.EntityFrameworkCore.InMemory --version 8.0.0 && rm ECommerceApi.Tests/UnitTest1.cs && mkdir -p ECommerceApi.Tests/UnitTests ECommerceApi.Tests/IntegrationTests && touch ECommerceApi.Tests/UnitTests/UnitTest1.cs ECommerceApi.Tests/IntegrationTests/IntegrationTest1.cs && dotnet build"}, {"text": "Sonuç: `ECommerceApi.Tests/` altında `UnitTests/UnitTest1.cs` ve `IntegrationTests/IntegrationTest1.cs` boş dosyaları olur, `dotnet build` hatasız biter."}], why: "Test kodu canlıya çıkan derlemeye karışmasın diye ayrı bir assembly açılır; referans tek yönlüdür.", file: "Terminal", language: "bash", code: String.raw`# 1. Test projesini oluştur.
+      { title: "Test projesini ve paketleri kur", how: [{"text": "Önce S7'nin bitmiş halinden yeni bir branch aç:", "code": "git fetch && git checkout -b dotnet-bc-s08-testing-prep origin/ref/s07-async-programming"}, {"text": "Terminali solution'ın kök klasöründe aç (`ECommerceSolution.sln` dosyasının bulunduğu klasör). Aşağıdaki grupları sırayla çalıştır."}, {"text": "Hepsini tek seferde çalıştırmak istersen:", "code": "dotnet new xunit -n ECommerceApi.Tests -f net8.0 && dotnet sln add ECommerceApi.Tests/ECommerceApi.Tests.csproj && dotnet add ECommerceApi.Tests reference ECommerceApi/ECommerceApi.csproj && dotnet add ECommerceApi.Tests package Moq --version 4.20.72 && dotnet add ECommerceApi.Tests package FluentAssertions --version 7.0.0 && dotnet add ECommerceApi.Tests package Microsoft.AspNetCore.Mvc.Testing --version 8.0.0 && dotnet add ECommerceApi.Tests package Microsoft.EntityFrameworkCore.InMemory --version 8.0.0 && rm ECommerceApi.Tests/UnitTest1.cs && mkdir -p ECommerceApi.Tests/UnitTests ECommerceApi.Tests/IntegrationTests && touch ECommerceApi.Tests/UnitTests/UnitTest1.cs ECommerceApi.Tests/IntegrationTests/IntegrationTest1.cs && dotnet build"}, {"text": "Sonuç: `ECommerceApi.Tests/` altında `UnitTests/UnitTest1.cs` ve `IntegrationTests/IntegrationTest1.cs` boş dosyaları olur, `dotnet build` hatasız biter."}], why: "Test kodu canlıya çıkan derlemeye karışmasın diye ayrı bir assembly açılır; referans tek yönlüdür.", file: "Terminal", language: "bash", code: String.raw`# 1. Branch'i al.
+# S7'nin bitmiş hali olan ref/s07-async-programming'den yeni bir branch açıyoruz.
+git fetch && git checkout -b dotnet-bc-s08-testing-prep origin/ref/s07-async-programming
+
+# 2. Test projesini oluştur.
 # -f net8.0 önemli: API .NET 8 olduğu için test projesi de net8.0 olmalı.
 dotnet new xunit -n ECommerceApi.Tests -f net8.0
 
-# 2. Solution'a ekle ve API'ye bağla.
+# 3. Solution'a ekle ve API'ye bağla.
 # Bağımlılık tek yönlü: test projesi API'yi bilir, API test projesini bilmez.
 dotnet sln add ECommerceApi.Tests/ECommerceApi.Tests.csproj
 dotnet add ECommerceApi.Tests reference ECommerceApi/ECommerceApi.csproj
 
-# 3. Paketleri ekle.
+# 4. Paketleri ekle.
 # Moq: sahte bağımlılık. FluentAssertions: okunur assert (8.x ticari lisans istediği için 7.0.0).
 # Mvc.Testing: API'yi bellekte ayağa kaldırır. InMemory: testlere özel geçici veritabanı.
 dotnet add ECommerceApi.Tests package Moq --version 4.20.72
@@ -721,7 +725,7 @@ dotnet add ECommerceApi.Tests package FluentAssertions --version 7.0.0
 dotnet add ECommerceApi.Tests package Microsoft.AspNetCore.Mvc.Testing --version 8.0.0
 dotnet add ECommerceApi.Tests package Microsoft.EntityFrameworkCore.InMemory --version 8.0.0
 
-# 4. Klasör yapısını kur ve derle.
+# 5. Klasör yapısını kur ve derle.
 # Şablonun örnek testini sil, UnitTests ve IntegrationTests klasörlerini aç.
 # Boş klasör Rider'da görünmez, o yüzden içine birer boş dosya koyuyoruz.
 rm ECommerceApi.Tests/UnitTest1.cs
