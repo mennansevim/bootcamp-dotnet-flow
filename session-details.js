@@ -127,7 +127,7 @@ app.Run();` }
     ],
         checklist: ["Swagger paketini ve servis kayıtlarını ekle.", "Options sınıflarını ve yapılandırma bölümlerini oluştur.", "Product istek/yanıt DTO'larını doğrulama kurallarıyla tanımla.", "IProductService ve ProductService katmanını oluştur.", "Merkezi hata ve istek günlüğü middleware'lerini ekle.", "ProductsController içindeki iş mantığını servise taşı.", "Geçerli ve geçersiz istekleri Swagger üzerinden doğrula."],
     code: [
-      { title: "Product DTO'larını ve kuralları tanımla", why: "Create ve update sözleşmeleri birbirinden ayrılır, geçersiz veri API sınırında reddedilir.", file: "ECommerceApi/DTOs/ProductDtos.cs", language: "csharp", code: String.raw`using System.ComponentModel.DataAnnotations;
+      { title: "Product DTO'larını ve kuralları tanımla", how: [{"text": "Base'de: `ProductDtos.cs` hazır. Bu adımın canlı kısmı doğrulama kuralları: `CreateProductDtoValidator.cs` içindeki `// TODO [S02 - Adım 1]`. `UpdateProductDtoValidator` örnek olarak hazır."}], why: "Create ve update sözleşmeleri birbirinden ayrılır, geçersiz veri API sınırında reddedilir.", file: "ECommerceApi/DTOs/ProductDtos.cs", language: "csharp", code: String.raw`using System.ComponentModel.DataAnnotations;
 
 namespace ECommerceApi.DTOs;
 
@@ -164,7 +164,7 @@ public class UpdateProductDto
     [Range(0.01, 1_000_000)] public decimal? Price { get; set; }
     [Range(0, 10_000)] public int? Stock { get; set; }
 }` },
-    { title: "Servis sözleşmesini oluştur", why: "Controller, iş mantığının nasıl çalıştığını değil, hangi işlemlerin sunulduğunu bilir.", file: "ECommerceApi/Services/IProductService.cs", language: "csharp", code: String.raw`using ECommerceApi.DTOs;
+    { title: "Servis sözleşmesini oluştur", how: [{"text": "Base'de: sözleşme hazır ve `ECommerceResult<T>` döndürüyor (aşağıdaki kod sadeleştirilmiş). Canlı kısım: `ProductService.cs` içinde `// TODO [S02 - Adım 2a]`–`2d`, controller'ı servise taşımak için `ProductsController.cs` içinde `2e`."}], why: "Controller, iş mantığının nasıl çalıştığını değil, hangi işlemlerin sunulduğunu bilir.", file: "ECommerceApi/Services/IProductService.cs", language: "csharp", code: String.raw`using ECommerceApi.DTOs;
 
 namespace ECommerceApi.Services;
 
@@ -176,7 +176,7 @@ public interface IProductService
     ProductDto? Update(int id, UpdateProductDto dto);
     bool Delete(int id);
 }` },
-    { title: "Merkezi hata middleware'ini ekle", why: "Beklenmeyen hataları tek biçimde günlüğe kaydeder, istemciye kontrollü bir yanıt döneriz.", file: "ECommerceApi/Middleware/ExceptionHandlingMiddleware.cs", language: "csharp", code: String.raw`using System.Net;
+    { title: "Merkezi hata middleware'ini ekle", how: [{"text": "Base'de: sınıf, constructor, `ErrorResponse` ve `UseExceptionHandling` hazır. `// TODO [S02 - Adım 3a]` (try/catch) ve `3b` (hata tipi → HTTP kodu) yorumlarının yerine yaz."}], why: "Beklenmeyen hataları tek biçimde günlüğe kaydeder, istemciye kontrollü bir yanıt döneriz.", file: "ECommerceApi/Middleware/ExceptionHandlingMiddleware.cs", language: "csharp", code: String.raw`using System.Net;
 using System.Text.Json;
 
 namespace ECommerceApi.Middleware;
@@ -212,7 +212,7 @@ public static class ExceptionHandlingMiddlewareExtensions
     public static IApplicationBuilder UseExceptionHandling(this IApplicationBuilder app) =>
         app.UseMiddleware<ExceptionHandlingMiddleware>();
 }` },
-    { title: "Servis ve options kayıtlarını bağla", why: "DI container arayüzleri çözer; konfigürasyon sınıfları ilgili bölümlere bağlanır.", file: "ECommerceApi/Program.cs", language: "csharp", code: String.raw`builder.Services.AddScoped<IProductService, ProductService>();
+    { title: "Servis ve options kayıtlarını bağla", how: [{"text": "Base'de: `Program.cs` içinde `// TODO [S02 - Adım 4a]` (servis, options ve validator kayıtları) ve `4b` (middleware sırası) yorumlarının yerine yaz."}], why: "DI container arayüzleri çözer; konfigürasyon sınıfları ilgili bölümlere bağlanır.", file: "ECommerceApi/Program.cs", language: "csharp", code: String.raw`builder.Services.AddScoped<IProductService, ProductService>();
 
 builder.Services.Configure<AppSettings>(
     builder.Configuration.GetSection(AppSettings.SectionName));
@@ -239,7 +239,7 @@ app.MapControllers();` }
     ],
         checklist: ["ProductQueryParameters ve PagedResult<T> DTO'larını oluştur.", "Product servisine filtreleme, sıralama ve sayfalama ekle.", "Sorgu modelini controller'a [FromQuery] ile bağla.", "Product kimliği route'una tip ve minimum değer kısıtı ekle.", "Bulunamayan kaynakları Problem Details biçiminde döndür.", "XML açıklamalarını Swagger'a dahil et.", "Sayfalama, hatalı route ve 404 senaryolarını doğrula."],
     code: [
-    { title: "Sorgu ve sayfalı sonuç modellerini ekle", why: "Liste endpoint'inin tüm girişlerini ve sayfalama bilgilerini tek sözleşmede toplarız.", file: "ECommerceApi/DTOs/QueryDtos.cs", language: "csharp", code: String.raw`using System.ComponentModel.DataAnnotations;
+    { title: "Sorgu ve sayfalı sonuç modellerini ekle", how: [{"text": "Base'de: sınıflar ve basit özellikler hazır. `// TODO [S03 - Adım 1a]` (PageSize sınırı) ve `1b` (TotalPages, HasPrevious, HasNext) yorumlarının yerine yaz."}], why: "Liste endpoint'inin tüm girişlerini ve sayfalama bilgilerini tek sözleşmede toplarız.", file: "ECommerceApi/DTOs/QueryDtos.cs", language: "csharp", code: String.raw`using System.ComponentModel.DataAnnotations;
 
 namespace ECommerceApi.DTOs;
 
@@ -272,7 +272,7 @@ public class PagedResult<T>
     public bool HasPrevious => Page > 1;
     public bool HasNext => Page < TotalPages;
 }` },
-      { title: "Sayfalama algoritmasını uygula", why: "TotalCount doğru kalırken istemciye yalnız istediği pencere döndürülür.", file: "ECommerceApi/Services/ProductService.cs", language: "csharp", code: String.raw`public PagedResult<ProductDto> GetPaged(ProductQueryParameters query)
+      { title: "Sayfalama algoritmasını uygula", how: [{"text": "Base'de: `GetPaged` imzası hazır. `// TODO [S03 - Adım 2a]` (filtrele, sırala) ve `2b` (say, sayfala) yorumlarının yerine yaz."}], why: "TotalCount doğru kalırken istemciye yalnız istediği pencere döndürülür.", file: "ECommerceApi/Services/ProductService.cs", language: "csharp", code: String.raw`public PagedResult<ProductDto> GetPaged(ProductQueryParameters query)
 {
     IEnumerable<Product> items = _products;
 
@@ -297,7 +297,7 @@ public class PagedResult<T>
         PageSize = query.PageSize, TotalCount = total
     };
 }` },
-    { title: "Sorgu bağlama ve route kısıtı ekle", why: "Liste parametrelerini sorgu dizesinden bağlarız; geçersiz kimlikler action'a ulaşmaz.", file: "ECommerceApi/Controllers/ProductsController.cs", language: "csharp", code: String.raw`[HttpGet]
+    { title: "Sorgu bağlama ve route kısıtı ekle", how: [{"text": "Base'de: önceki session'ın çalışan kodu duruyor. `// TODO [S03 - Adım 3a]` (`[FromQuery]`), `3b` (route kısıtı) ve `3c` (Problem Details) yorumlarına göre değiştir."}], why: "Liste parametrelerini sorgu dizesinden bağlarız; geçersiz kimlikler action'a ulaşmaz.", file: "ECommerceApi/Controllers/ProductsController.cs", language: "csharp", code: String.raw`[HttpGet]
 [ProducesResponseType(typeof(PagedResult<ProductDto>), StatusCodes.Status200OK)]
 public ActionResult<PagedResult<ProductDto>> GetAll(
     [FromQuery] ProductQueryParameters query)
@@ -319,7 +319,7 @@ public ActionResult<ProductDto> GetById(int id)
 
     return Ok(product);
 }` },
-      { title: "Problem Details ve XML docs'u bağla", why: "Hata gövdeleri standartlaşır, XML açıklamaları Swagger dokümanına girer.", file: "ECommerceApi/Program.cs", language: "csharp", code: String.raw`using System.Reflection;
+      { title: "Problem Details ve XML docs'u bağla", how: [{"text": "Base'de: XML docs bağlantısı Session 2'den hazır. Canlı kısım `// TODO [S03 - Adım 4]`: `AddProblemDetails` kaydı."}], why: "Hata gövdeleri standartlaşır, XML açıklamaları Swagger dokümanına girer.", file: "ECommerceApi/Program.cs", language: "csharp", code: String.raw`using System.Reflection;
 
 builder.Services.AddProblemDetails();
 builder.Services.AddSwaggerGen(options =>
@@ -341,10 +341,10 @@ builder.Services.AddSwaggerGen(options =>
     ],
         checklist: ["EF Core SQLite ve Design paketlerini ekle.", "Product ve Category entity'lerini oluştur.", "BootcampDbContext ve Fluent API kurallarını tanımla.", "Genel ve Product repository katmanlarını ekle.", "Product servisini asenkron repository metotlarına bağla.", "Bağlantı dizesini ve DI kayıtlarını yapılandır.", "Migration oluşturup veritabanını hazırla.", "CRUD ve soft delete davranışını doğrula."],
     code: [
-    { title: "EF Core paketlerini ekle", why: "SQLite sağlayıcısı çalışma zamanı erişimini, Design paketi ise migration araçlarını sunar.", file: "Terminal", language: "bash", code: String.raw`dotnet add ECommerceApi package Microsoft.EntityFrameworkCore.Sqlite --version 8.0.0
+    { title: "EF Core paketlerini ekle", how: [{"text": "Base'de hazır: paketler csproj'da, tekrar ekleme. `dotnet-ef` aracı makinede yoksa bir kez kur:", "code": "dotnet tool install --global dotnet-ef"}], why: "SQLite sağlayıcısı çalışma zamanı erişimini, Design paketi ise migration araçlarını sunar.", file: "Terminal", language: "bash", code: String.raw`dotnet add ECommerceApi package Microsoft.EntityFrameworkCore.Sqlite --version 8.0.0
 dotnet add ECommerceApi package Microsoft.EntityFrameworkCore.Design --version 8.0.0
 dotnet tool install --global dotnet-ef` },
-      { title: "Product entity'sini oluştur", why: "Kalıcı model; key, uzunluk, precision ve soft-delete alanlarını taşır.", file: "ECommerceApi/Entities/ProductEntity.cs", language: "csharp", code: String.raw`using System.ComponentModel.DataAnnotations;
+      { title: "Product entity'sini oluştur", how: [{"text": "Base'de hazır: `ProductEntity` ve `CategoryEntity` yazılı. Dosyayı açıp göster."}], why: "Kalıcı model; key, uzunluk, precision ve soft-delete alanlarını taşır.", file: "ECommerceApi/Entities/ProductEntity.cs", language: "csharp", code: String.raw`using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ECommerceApi.Entities;
@@ -362,7 +362,7 @@ public class ProductEntity
     public DateTime? UpdatedAt { get; set; }
     public bool IsDeleted { get; set; }
 }` },
-    { title: "DbContext ve model kurallarını ekle", why: "Tabloları, indeksleri, ondalık sayı hassasiyetini ve genel soft delete kuralını tek yerde tanımlarız.", file: "ECommerceApi/Data/BootcampDbContext.cs", language: "csharp", code: String.raw`using ECommerceApi.Entities;
+    { title: "DbContext ve model kurallarını ekle", how: [{"text": "Base'de: `DbSet`'ler hazır. `// TODO [S04 - Adım 3a]` (Fluent API kuralları) ve `3b` (seed) yorumlarının yerine yaz."}], why: "Tabloları, indeksleri, ondalık sayı hassasiyetini ve genel soft delete kuralını tek yerde tanımlarız.", file: "ECommerceApi/Data/BootcampDbContext.cs", language: "csharp", code: String.raw`using ECommerceApi.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace ECommerceApi.Data;
@@ -387,7 +387,7 @@ public class BootcampDbContext : DbContext
             .HasIndex(e => e.Name).IsUnique();
     }
 }` },
-      { title: "Generic repository sözleşmesini kur", why: "Ortak veri erişim işlemleri tüm entity'ler için aynı interface ile sunulur.", file: "ECommerceApi/Repositories/IRepository.cs", language: "csharp", code: String.raw`using System.Linq.Expressions;
+      { title: "Generic repository sözleşmesini kur", how: [{"text": "Base'de: `IRepository` sözleşmesi hazır. Canlı kısım `Repository.cs` içinde: `// TODO [S04 - Adım 4a]` (okuma) ve `4b` (yazma)."}], why: "Ortak veri erişim işlemleri tüm entity'ler için aynı interface ile sunulur.", file: "ECommerceApi/Repositories/IRepository.cs", language: "csharp", code: String.raw`using System.Linq.Expressions;
 
 namespace ECommerceApi.Repositories;
 
@@ -401,7 +401,7 @@ public interface IRepository<T> where T : class
     Task DeleteAsync(T entity);
     IQueryable<T> Query();
 }` },
-    { title: "Veritabanı ve repository'leri kaydet", why: "Scoped DbContext ve repository'ler istek boyunca aynı veri oturumunu paylaşır; bekleyen migration'lar başlangıçta uygulanır.", file: "ECommerceApi/Program.cs", language: "csharp", code: String.raw`builder.Services.AddDbContext<BootcampDbContext>(options =>
+    { title: "Veritabanı ve repository'leri kaydet", how: [{"text": "Base'de: `// TODO [S04 - Adım 5a]` (`AddDbContext`), `5b` (repository kayıtları, ardından `IProductService` satırının yorumunu kaldır) ve `5c` (`Migrate`) yorumlarının yerine yaz."}], why: "Scoped DbContext ve repository'ler istek boyunca aynı veri oturumunu paylaşır; bekleyen migration'lar başlangıçta uygulanır.", file: "ECommerceApi/Program.cs", language: "csharp", code: String.raw`builder.Services.AddDbContext<BootcampDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
@@ -410,7 +410,7 @@ builder.Services.AddScoped<IProductRepository, ProductRepository>();
 using var scope = app.Services.CreateScope();
 var dbContext = scope.ServiceProvider.GetRequiredService<BootcampDbContext>();
 dbContext.Database.Migrate();` },
-      { title: "Migration'ı üret ve uygula", why: "C# modeli SQLite şemasına dönüştürülür ve versiyonlanır.", file: "Terminal", language: "bash", code: String.raw`cd ECommerceApi
+      { title: "Migration'ı üret ve uygula", how: [{"text": "Base'de migration ve `bootcamp.db` yok; bu adım canlı çalıştırılır."}], why: "C# modeli SQLite şemasına dönüştürülür ve versiyonlanır.", file: "Terminal", language: "bash", code: String.raw`cd ECommerceApi
 dotnet ef migrations add InitialCreate
 dotnet ef database update
 dotnet ef migrations list
@@ -429,7 +429,7 @@ dotnet run` }
     ],
         checklist: ["JWT bearer ve BCrypt paketlerini ekle.", "Kullanıcı entity'sini, rolleri ve başlangıç admin hesabını tanımla.", "Users tablosu için AddSecurityIdentity migration'ını oluştur.", "JWT ayarlarını konfigürasyona taşı.", "Claim içeren token üreten JwtService katmanını oluştur.", "BCrypt kullanan kayıt/giriş akışını AuthService içinde kur.", "Kimlik doğrulama ve yetkilendirme middleware'lerini bağla.", "Token üretme ve geçersiz token senaryolarını doğrula."],
     code: [
-      { title: "JWT ayar modelini oluştur", why: "Token üretme ve doğrulama parametreleri Options Pattern ile tek yerde yönetilir.", file: "ECommerceApi/Auth/JwtSettings.cs", language: "csharp", code: String.raw`namespace ECommerceApi.Auth;
+      { title: "JWT ayar modelini oluştur", how: [{"text": "Base'de: `JwtSettings` sınıfı ve `appsettings.json` bölümü hazır (access token 15 dk + refresh token). Canlı kısım `Program.cs` içindeki `// TODO [S05 - Adım 1]`: `Configure<JwtSettings>` kaydı. Uygulama secret'sız açılmaz; bir kez çalıştır:", "code": "dotnet user-secrets set \"JwtSettings:SecretKey\" \"BootcampLocalDevSecretKey_Min32Chars_2026!\" --project ECommerceApi"}], why: "Token üretme ve doğrulama parametreleri Options Pattern ile tek yerde yönetilir.", file: "ECommerceApi/Auth/JwtSettings.cs", language: "csharp", code: String.raw`namespace ECommerceApi.Auth;
 
 public class JwtSettings
 {
@@ -439,7 +439,7 @@ public class JwtSettings
     public string Audience { get; set; } = string.Empty;
     public int ExpirationInMinutes { get; set; } = 60;
 }` },
-      { title: "JWT üretimini uygula", why: "Kullanıcı kimliği ve rolü imzalı claim'ler olarak token'a eklenir.", file: "ECommerceApi/Auth/JwtService.cs", language: "csharp", code: String.raw`public string GenerateToken(UserEntity user)
+      { title: "JWT üretimini uygula", how: [{"text": "Base'de: refresh token yardımcıları hazır. `JwtService.cs` içindeki `// TODO [S05 - Adım 2]` (`GenerateToken`) yorumunun yerine yaz."}], why: "Kullanıcı kimliği ve rolü imzalı claim'ler olarak token'a eklenir.", file: "ECommerceApi/Auth/JwtService.cs", language: "csharp", code: String.raw`public string GenerateToken(UserEntity user)
 {
     var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.SecretKey));
     var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -461,7 +461,7 @@ public class JwtSettings
 
     return new JwtSecurityTokenHandler().WriteToken(token);
 }` },
-    { title: "Parolayı hashleyerek kullanıcı oluştur", why: "Veritabanına hiçbir zaman düz metin parola yazmayız.", file: "ECommerceApi/Services/AuthService.cs", language: "csharp", code: String.raw`public async Task<AuthResponseDto> RegisterAsync(RegisterRequestDto request)
+    { title: "Parolayı hashleyerek kullanıcı oluştur", how: [{"text": "Base ve referans BCrypt yerine ASP.NET Core Identity kullanıyor (`UserManager`, `SignInManager`); aşağıdaki kod sadeleştirilmiş örnek. `AuthService.cs` içinde `// TODO [S05 - Adım 3a]` (register) ve `3b` (login) yorumlarının yerine yaz."}], why: "Veritabanına hiçbir zaman düz metin parola yazmayız.", file: "ECommerceApi/Services/AuthService.cs", language: "csharp", code: String.raw`public async Task<AuthResponseDto> RegisterAsync(RegisterRequestDto request)
 {
     if (await _context.Users.AnyAsync(u => u.Username == request.Username))
         return new AuthResponseDto { Success = false, Message = "Bu kullanıcı adı zaten kullanılıyor" };
@@ -486,7 +486,7 @@ public class JwtSettings
         User = MapToUserDto(user)
     };
 }` },
-    { title: "JWT doğrulamasını işlem hattına bağla", why: "Bearer handler, her istekteki token'ı API action'ından önce doğrular.", file: "ECommerceApi/Program.cs", language: "csharp", code: String.raw`builder.Services.Configure<JwtSettings>(
+    { title: "JWT doğrulamasını işlem hattına bağla", how: [{"text": "Base'de: Identity, Keycloak, policy'ler ve rate limiter hazır. `// TODO [S05 - Adım 4a]` (`AddJwtBearer`) ve `4b` (`UseAuthentication` → `UseAuthorization`) yorumlarının yerine yaz."}], why: "Bearer handler, her istekteki token'ı API action'ından önce doğrular.", file: "ECommerceApi/Program.cs", language: "csharp", code: String.raw`builder.Services.Configure<JwtSettings>(
     builder.Configuration.GetSection(JwtSettings.SectionName));
 
 var jwt = builder.Configuration.GetSection(JwtSettings.SectionName).Get<JwtSettings>()!;
@@ -507,7 +507,7 @@ builder.Services.AddAuthorization();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();` }
-    ,{ title: "Kullanıcı şemasını versiyonla", why: "S4 veritabanı veri kaybetmeden Users tablosu, benzersiz indeksler ve başlangıç admin hesabıyla genişletilir.", file: "Terminal", language: "bash", code: String.raw`cd ECommerceApi
+    ,{ title: "Kullanıcı şemasını versiyonla", how: [{"text": "Base'de hazır: Identity migration'ları ve `bootcamp.db` geliyor. Migration üretme, uygulananları göster:", "code": "dotnet ef migrations list --project ECommerceApi"}], why: "S4 veritabanı veri kaybetmeden Users tablosu, benzersiz indeksler ve başlangıç admin hesabıyla genişletilir.", file: "Terminal", language: "bash", code: String.raw`cd ECommerceApi
 dotnet ef migrations add AddSecurityIdentity
 dotnet ef database update
 dotnet ef migrations list` }
@@ -525,7 +525,7 @@ dotnet ef migrations list` }
     ],
         checklist: ["Banka hesabı ve işlem kaydı entity'lerini oluştur.", "Banka şeması için AddBanking migration'ını oluştur.", "İş alanını ifade eden özel hata sınıflarını ekle.", "Transaction metotlarını sunan Unit of Work katmanını kur.", "Para transferini transaction içinde gerçekleştiren Bank servisini yaz.", "Hata durumunda rollback yap ve hatayı üst katmana ilet.", "Merkezi middleware'de hata türü → HTTP kodu eşlemesini yap.", "Başarılı, yetersiz bakiye ve bulunamayan hesap senaryolarını doğrula."],
     code: [
-    { title: "İş alanı hata türlerini tanımla", why: "Hata türü hem iş anlamını hem de üretilecek HTTP yanıtını belirler.", file: "ECommerceApi/Exceptions/CustomExceptions.cs", language: "csharp", code: String.raw`namespace ECommerceApi.Exceptions;
+    { title: "İş alanı hata türlerini tanımla", how: [{"text": "Base'de: `BaseException`, `NotFoundException` ve `ConflictException` hazır. `// TODO [S06 - Adım 1]`: `ValidationException` (400), `BusinessException` (422) ve `InsufficientFundsException`. Referansta yetersiz bakiye 409 değil 422; aşağıdaki kod sadeleştirilmiş."}], why: "Hata türü hem iş anlamını hem de üretilecek HTTP yanıtını belirler.", file: "ECommerceApi/Exceptions/CustomExceptions.cs", language: "csharp", code: String.raw`namespace ECommerceApi.Exceptions;
 
 public abstract class AppException : Exception
 {
@@ -547,7 +547,7 @@ public sealed class InsufficientFundsException : AppException
 {
     public InsufficientFundsException(string message) : base(message) { }
 }` },
-    { title: "Unit of Work sözleşmesini oluştur", why: "Transaction yaşam döngüsünü servis kodundan ayırırız.", file: "ECommerceApi/UnitOfWork/IUnitOfWork.cs", language: "csharp", code: String.raw`namespace ECommerceApi.UnitOfWork;
+    { title: "Unit of Work sözleşmesini oluştur", how: [{"text": "Base'de: repository property'leri hazır. `// TODO [S06 - Adım 2a]` (transaction metotlarının imzaları), `UnitOfWork.cs` içinde `2b`–`2d` (Begin, Commit, Rollback) yorumlarının yerine yaz."}], why: "Transaction yaşam döngüsünü servis kodundan ayırırız.", file: "ECommerceApi/UnitOfWork/IUnitOfWork.cs", language: "csharp", code: String.raw`namespace ECommerceApi.UnitOfWork;
 
 public interface IUnitOfWork : IDisposable
 {
@@ -556,7 +556,7 @@ public interface IUnitOfWork : IDisposable
     Task CommitAsync();
     Task RollbackAsync();
 }` },
-      { title: "Para transferini atomik uygula", why: "Gönderen ve alıcı bakiyesi yalnız iki güncelleme de başarılıysa kalıcılaşır.", file: "ECommerceApi/Services/BankService.cs", language: "csharp", code: String.raw`public async Task<TransferResponseDto> TransferAsync(TransferRequestDto request)
+      { title: "Para transferini atomik uygula", how: [{"text": "Base'de: listeleme ve hesap açma hazır. `TransferAsync` içinde `// TODO [S06 - Adım 3a]` (ön kontroller), `3b` (transaction) ve `3c` (rollback) yorumlarının yerine yaz."}], why: "Gönderen ve alıcı bakiyesi yalnız iki güncelleme de başarılıysa kalıcılaşır.", file: "ECommerceApi/Services/BankService.cs", language: "csharp", code: String.raw`public async Task<TransferResponseDto> TransferAsync(TransferRequestDto request)
 {
     if (request.Amount <= 0)
         throw new ValidationException("Transfer tutarı sıfırdan büyük olmalıdır");
@@ -587,7 +587,7 @@ public interface IUnitOfWork : IDisposable
         throw;
     }
 }` },
-    { title: "Hata türlerini HTTP koduna çevir", why: "İş alanı hataları controller'lardan bağımsız, tutarlı yanıtlara dönüşür.", file: "ECommerceApi/Middleware/ExceptionHandlingMiddleware.cs", language: "csharp", code: String.raw`var statusCode = exception switch
+    { title: "Hata türlerini HTTP koduna çevir", how: [{"text": "Base'de: middleware hazır, canlı kısım sadece `// TODO [S06 - Adım 4]`: `case BaseException` eşlemesi."}], why: "İş alanı hataları controller'lardan bağımsız, tutarlı yanıtlara dönüşür.", file: "ECommerceApi/Middleware/ExceptionHandlingMiddleware.cs", language: "csharp", code: String.raw`var statusCode = exception switch
 {
     NotFoundException => StatusCodes.Status404NotFound,
     ValidationException => StatusCodes.Status400BadRequest,
@@ -605,7 +605,7 @@ await context.Response.WriteAsJsonAsync(new
     message = statusCode == 500 ? "Beklenmeyen bir hata oluştu" : exception.Message,
     timestamp = DateTime.UtcNow
 });` }
-    ,{ title: "Banka şemasını versiyonla", why: "Hesap ve işlem tabloları mevcut ürün ve kullanıcı verileri korunarak eklenir.", file: "Terminal", language: "bash", code: String.raw`cd ECommerceApi
+    ,{ title: "Banka şemasını versiyonla", how: [{"text": "Base'de hazır: `AddBanking` migration'ı ve `bootcamp.db` geliyor. Migration üretme, uygulananları göster:", "code": "dotnet ef migrations list --project ECommerceApi"}], why: "Hesap ve işlem tabloları mevcut ürün ve kullanıcı verileri korunarak eklenir.", file: "Terminal", language: "bash", code: String.raw`cd ECommerceApi
 dotnet ef migrations add AddBanking
 dotnet ef database update
 dotnet ef migrations list` }
@@ -623,7 +623,7 @@ dotnet ef migrations list` }
     ],
         checklist: ["Gecikme, WhenAll, WhenAny ve iptal örnekleri sunan AsyncDemo servisini oluştur.", "Örnekleri HTTP üzerinden sunan AsyncDemo controller'ını ekle.", "Önceki oturumlardaki Auth ve Bank servislerini controller'larla dışarı aç.", "Products controller'ını tamamen asenkron servis kullanımına geçir.", "AsyncDemo servisini DI container'a kaydet.", "Sıralı/paralel süreleri ve iptal davranışını doğrula.", "Giriş → token → korumalı banka işlemi akışını test et."],
     code: [
-      { title: "WhenAll ve WhenAny örneklerini ekle", why: "Bağımsız çağrıların paralel yürütülmesi ve en hızlı cevabın seçilmesi karşılaştırılır.", file: "ECommerceApi/Services/AsyncDemoService.cs", language: "csharp", code: String.raw`public async Task<IEnumerable<string>> GetMultipleDataParallelAsync()
+      { title: "WhenAll ve WhenAny örneklerini ekle", how: [{"text": "Base'de: servis sözleşmesi ve diğer metotlar hazır. `// TODO [S07 - Adım 1a]` (`Task.WhenAll`) ve `1b` (`Task.WhenAny`) yorumlarının yerine yaz."}], why: "Bağımsız çağrıların paralel yürütülmesi ve en hızlı cevabın seçilmesi karşılaştırılır.", file: "ECommerceApi/Services/AsyncDemoService.cs", language: "csharp", code: String.raw`public async Task<IEnumerable<string>> GetMultipleDataParallelAsync()
 {
     var tasks = new[]
     {
@@ -644,7 +644,7 @@ public async Task<string> GetFastestResponseAsync()
     };
     return await await Task.WhenAny(tasks);
 }` },
-      { title: "CancellationToken'ı işle", why: "İstemci vazgeçtiğinde uzun iş kontrollü biçimde durur.", file: "ECommerceApi/Services/AsyncDemoService.cs", language: "csharp", code: String.raw`public async Task<string> GetDataWithCancellationAsync(
+      { title: "CancellationToken'ı işle", how: [{"text": "`// TODO [S07 - Adım 2]` yorumunun yerine yaz. İptali denemek için `cancellable` endpoint'i base'de hazır."}], why: "İstemci vazgeçtiğinde uzun iş kontrollü biçimde durur.", file: "ECommerceApi/Services/AsyncDemoService.cs", language: "csharp", code: String.raw`public async Task<string> GetDataWithCancellationAsync(
     CancellationToken cancellationToken)
 {
     for (var step = 1; step <= 10; step++)
@@ -655,7 +655,7 @@ public async Task<string> GetFastestResponseAsync()
     }
     return "Operation completed successfully";
 }` },
-      { title: "Paralel endpoint'i oluştur", why: "WhenAll davranışı ve toplam süre HTTP üzerinden gözlemlenir.", file: "ECommerceApi/Controllers/AsyncDemoController.cs", language: "csharp", code: String.raw`[HttpGet("parallel")]
+      { title: "Paralel endpoint'i oluştur", how: [{"text": "Base'de: diğer endpoint'ler hazır. `// TODO [S07 - Adım 3a]` (`parallel`), `3b` (`compare`) ve `Program.cs`'te `3c` (servis kaydı) yorumlarının yerine yaz."}], why: "WhenAll davranışı ve toplam süre HTTP üzerinden gözlemlenir.", file: "ECommerceApi/Controllers/AsyncDemoController.cs", language: "csharp", code: String.raw`[HttpGet("parallel")]
 public async Task<ActionResult> ParallelAsync()
 {
     var startedAt = DateTime.UtcNow;
@@ -669,7 +669,7 @@ public async Task<ActionResult> ParallelAsync()
         note = "Toplam süre en uzun süren işlem kadardır"
     });
 }` },
-    { title: "JWT profil endpoint'ini aç", why: "Token claim'ini okur, kimliği doğrulanan kullanıcıyı servis üzerinden getiririz.", file: "ECommerceApi/Controllers/AuthController.cs", language: "csharp", code: String.raw`[HttpGet("profile")]
+    { title: "JWT profil endpoint'ini aç", how: [{"text": "Base'de hazır: `AuthController` Session 5'ten geliyor, bu oturumda yazılmıyor. Sadece göster."}], why: "Token claim'ini okur, kimliği doğrulanan kullanıcıyı servis üzerinden getiririz.", file: "ECommerceApi/Controllers/AuthController.cs", language: "csharp", code: String.raw`[HttpGet("profile")]
 [Authorize]
 public async Task<ActionResult<UserDto>> GetProfile()
 {
@@ -680,7 +680,7 @@ public async Task<ActionResult<UserDto>> GetProfile()
     var user = await _authService.GetUserByIdAsync(userId);
     return user is null ? NotFound() : Ok(user);
 }` },
-    { title: "Transfer endpoint'ini aç", why: "S6'da hazırladığımız transaction servisini HTTP üzerinden kullanılabilir hale getiririz.", file: "ECommerceApi/Controllers/BankController.cs", language: "csharp", code: String.raw`[HttpPost("transfer")]
+    { title: "Transfer endpoint'ini aç", how: [{"text": "Base'de hazır: `BankController` Session 6'dan geliyor, bu oturumda yazılmıyor. Sadece göster."}], why: "S6'da hazırladığımız transaction servisini HTTP üzerinden kullanılabilir hale getiririz.", file: "ECommerceApi/Controllers/BankController.cs", language: "csharp", code: String.raw`[HttpPost("transfer")]
 [ProducesResponseType(typeof(TransferResponseDto), StatusCodes.Status200OK)]
 public async Task<ActionResult<TransferResponseDto>> Transfer(
     [FromBody] TransferRequestDto request)
@@ -794,7 +794,7 @@ public partial ile aynı sınıfa "sen public'sin" diyoruz.
 Böylece WebApplicationFactory, Program sınıfına erişebiliyor.
 */
 public partial class Program { }` },
-      { title: "ProductService unit testini kur", how: [{"text": "Rider'da `ECommerceApi.Tests/UnitTests` klasörüne sağ tıkla → Add → Class/Interface → adı `ProductServiceTests` olsun. Şablonun ürettiği içeriği tamamen sil."}, {"text": "Dosyanın en üstüne şu `using` satırlarını ve namespace'i yaz:", "code": "using ECommerceApi.DTOs;\nusing ECommerceApi.Entities;\nusing ECommerceApi.Repositories;\nusing ECommerceApi.Services;\nusing FluentAssertions;\nusing Microsoft.Extensions.Logging.Abstractions;\nusing Moq;\n\nnamespace ECommerceApi.Tests.UnitTests;"}, {"text": "Altına aşağıdaki kod bloğunun tamamını yapıştır: `ProductServiceTests` sınıfı, constructor ve iki `[Fact]` testi."}, {"text": "Çalıştır, 2 test yeşil olmalı:", "code": "dotnet test"}], why: "Repository mock'lanır; veritabanına gidilmeden servisin mapping ve null davranışı doğrulanır.", file: "ECommerceApi.Tests/UnitTests/ProductServiceTests.cs", language: "csharp", code: String.raw`/*
+      { title: "ProductService unit testini kur", how: [{"text": "Base'de `UnitTests/ProductServiceTests.cs` hazır: using'ler, repository mock'u, SUT ve constructor yazılı."}, {"text": "`// TODO [S08 - Adım 3]` yorumunun yerine aşağıdaki koddan iki `[Fact]` testini yaz; sınıfın geri kalanı zaten dosyada."}, {"text": "Çalıştır, 2 test yeşil olmalı:", "code": "dotnet test"}], why: "Repository mock'lanır; veritabanına gidilmeden servisin mapping ve null davranışı doğrulanır.", file: "ECommerceApi.Tests/UnitTests/ProductServiceTests.cs", language: "csharp", code: String.raw`/*
 Önce neyi test edeceğimize karar verelim.
 
 ProductService'te 8 public metot var:
@@ -903,7 +903,7 @@ public class ProductServiceTests
         result.Should().BeNull();
     }
 }` },
-      { title: "Delete, Create ve Update testlerini ekle", how: [{"text": "Yeni dosya açma, bir önceki adımdaki `UnitTests/ProductServiceTests.cs` dosyasında devam et."}, {"text": "`GetByIdAsync_WhenProductDoesNotExist_ReturnsNull` testinin kapanış `}` satırını bul. Aşağıdaki dört test metodunu bu satırın altına, sınıfı kapatan en son `}` satırının üstüne yapıştır."}, {"text": "Metotlar sınıfın içinde kaldığı için bir seviye içeride olmalı. Rider'da Cmd+Alt+L (Windows'ta Ctrl+Alt+L) ile dosyayı formatla."}, {"text": "Çalıştır, 6 test yeşil olmalı:", "code": "dotnet test"}], why: "Her metodun hem mutlu yolunu hem de ürün bulunamadığında ne yaptığını, veritabanına gitmeden doğrularız.", file: "ECommerceApi.Tests/UnitTests/ProductServiceTests.cs", language: "csharp", code: String.raw`/*
+      { title: "Delete, Create ve Update testlerini ekle", how: [{"text": "Yeni dosya açma, bir önceki adımdaki `UnitTests/ProductServiceTests.cs` dosyasında devam et."}, {"text": "`// TODO [S08 - Adım 4]` yorumunun yerine aşağıdaki dört test metodunu yaz."}, {"text": "Metotlar sınıfın içinde kaldığı için bir seviye içeride olmalı. Rider'da Cmd+Alt+L (Windows'ta Ctrl+Alt+L) ile dosyayı formatla."}, {"text": "Çalıştır, 6 test yeşil olmalı:", "code": "dotnet test"}], why: "Her metodun hem mutlu yolunu hem de ürün bulunamadığında ne yaptığını, veritabanına gitmeden doğrularız.", file: "ECommerceApi.Tests/UnitTests/ProductServiceTests.cs", language: "csharp", code: String.raw`/*
 Aynı ProductServiceTests sınıfına dört test daha ekliyoruz.
 
 - DeleteAsync_WhenProductExists_ReturnsTrue:
@@ -1016,7 +1016,7 @@ public async Task UpdateAsync_WhenProductExists_ReturnsUpdatedProductDto()
     result.Name.Should().Be("Laptop Pro");
     result.Price.Should().Be(30000);
 }` },
-      { title: "Controller sözleşmesini test et", how: [{"text": "`ECommerceApi.Tests/UnitTests` klasöründe yeni bir `ProductControllerTests.cs` dosyası oluştur ve içini boşalt."}, {"text": "Dosyanın en üstüne şu `using` satırlarını ve namespace'i yaz:", "code": "using ECommerceApi.Controllers;\nusing ECommerceApi.DTOs;\nusing ECommerceApi.Services;\nusing FluentAssertions;\nusing Microsoft.AspNetCore.Mvc;\nusing Moq;\n\nnamespace ECommerceApi.Tests.UnitTests;"}, {"text": "Altına aşağıdaki `ProductsControllerTests` sınıfının tamamını yapıştır (constructor ve dört test dahil)."}, {"text": "Çalıştır, 10 test yeşil olmalı:", "code": "dotnet test"}], why: "Controller iş kuralı değil HTTP cevabı üretir; bu API 404 için NotFound değil ProblemDetails döner.", file: "ECommerceApi.Tests/UnitTests/ProductControllerTests.cs", language: "csharp", code: String.raw`/*
+      { title: "Controller sözleşmesini test et", how: [{"text": "Base'de `UnitTests/ProductControllerTests.cs` hazır: using'ler, servis mock'u, SUT ve constructor yazılı."}, {"text": "`// TODO [S08 - Adım 5]` yorumunun yerine aşağıdaki koddan dört testi yaz."}, {"text": "Çalıştır, 10 test yeşil olmalı:", "code": "dotnet test"}], why: "Controller iş kuralı değil HTTP cevabı üretir; bu API 404 için NotFound değil ProblemDetails döner.", file: "ECommerceApi.Tests/UnitTests/ProductControllerTests.cs", language: "csharp", code: String.raw`/*
 Şimdi bir katman yukarı çıkıyoruz: ProductsController.
 Dosyamız UnitTests/ProductControllerTests.cs.
 
@@ -1176,7 +1176,7 @@ public class ProductsControllerTests
         createdAtActionResult!.Value.Should().BeEquivalentTo(createdProductDto);
     }
 }` },
-      { title: "Test kimliğini hazırla", how: [{"text": "`ECommerceApi.Tests/IntegrationTests` klasöründe yeni bir `TestAuthHandler.cs` dosyası oluştur ve içini boşalt."}, {"text": "Dosyanın en üstüne şu `using` satırlarını ve namespace'i yaz:", "code": "using System.Security.Claims;\nusing System.Text.Encodings.Web;\nusing ECommerceApi.Auth;\nusing Microsoft.AspNetCore.Authentication;\nusing Microsoft.Extensions.Logging;\nusing Microsoft.Extensions.Options;\n\nnamespace ECommerceApi.Tests.IntegrationTests;"}, {"text": "Altına aşağıdaki `TestAuthHandler` sınıfının tamamını yapıştır."}, {"text": "Derlendiğini kontrol et:", "code": "dotnet build"}], why: "S5'ten beri ürün ekleme, güncelleme ve silme permission istiyor; testte login olup token almak yerine her isteği tüm izinlere sahip bir admin olarak doğrularız.", file: "ECommerceApi.Tests/IntegrationTests/TestAuthHandler.cs", language: "csharp", code: String.raw`/*
+      { title: "Test kimliğini hazırla", how: [{"text": "Base'de `IntegrationTests/TestAuthHandler.cs` hazır: using'ler, `SchemeName` ve constructor yazılı."}, {"text": "`HandleAuthenticateAsync` içindeki `// TODO [S08 - Adım 6]` yorumunu ve `throw` satırını sil, yerine aşağıdaki gövdeyi yaz."}, {"text": "Derlendiğini kontrol et:", "code": "dotnet build"}], why: "S5'ten beri ürün ekleme, güncelleme ve silme permission istiyor; testte login olup token almak yerine her isteği tüm izinlere sahip bir admin olarak doğrularız.", file: "ECommerceApi.Tests/IntegrationTests/TestAuthHandler.cs", language: "csharp", code: String.raw`/*
 Integration testlere geçmeden önce bir engeli kaldırmamız gerekiyor.
 
 S5'te ürün ekleme, güncelleme ve silme endpoint'lerine
@@ -1222,7 +1222,7 @@ public class TestAuthHandler : AuthenticationHandler<AuthenticationSchemeOptions
         return Task.FromResult(AuthenticateResult.Success(ticket));
     }
 }` },
-      { title: "Test fabrikasını hazırla", how: [{"text": "`ECommerceApi.Tests/IntegrationTests` klasöründe yeni bir `CustomWebApplicationFactory.cs` dosyası oluştur ve içini boşalt."}, {"text": "Dosyanın en üstüne şu `using` satırlarını ve namespace'i yaz:", "code": "using ECommerceApi.Data;\nusing Microsoft.AspNetCore.Authentication;\nusing Microsoft.AspNetCore.Hosting;\nusing Microsoft.AspNetCore.Mvc.Testing;\nusing Microsoft.EntityFrameworkCore;\nusing Microsoft.Extensions.DependencyInjection;\n\nnamespace ECommerceApi.Tests.IntegrationTests;"}, {"text": "Altına aşağıdaki `CustomWebApplicationFactory` sınıfının tamamını yapıştır."}, {"text": "Bu sınıf tek başına test değil, sadece derlendiğini kontrol et. `Program` sınıfına erişilemiyor hatası alırsan 2. adımdaki `public partial class Program { }` satırını kontrol et; `TestAuthHandler` bulunamıyorsa bir önceki adıma bak.", "code": "dotnet build"}], why: "Gerçek pipeline ayakta kalır; yalnızca veri katmanı izole InMemory veritabanıyla, kimlik doğrulama da test kimliğiyle değiştirilir.", file: "ECommerceApi.Tests/IntegrationTests/CustomWebApplicationFactory.cs", language: "csharp", code: String.raw`/*
+      { title: "Test fabrikasını hazırla", how: [{"text": "Base'de `IntegrationTests/CustomWebApplicationFactory.cs` hazır: using'ler, `_databaseName` alanı ve `ConfigureWebHost` iskeleti yazılı."}, {"text": "`// TODO [S08 - Adım 7a]` (ortam ve JWT secret), `7b` (InMemory veritabanı) ve `7c` (TestAuthHandler) yorumlarının yerine aşağıdaki ilgili satırları yaz."}, {"text": "Bu sınıf tek başına test değil, sadece derlendiğini kontrol et. `Program` sınıfına erişilemiyor hatası alırsan 2. adımdaki `public partial class Program { }` satırını kontrol et; `TestAuthHandler` bulunamıyorsa bir önceki adıma bak.", "code": "dotnet build"}], why: "Gerçek pipeline ayakta kalır; yalnızca veri katmanı izole InMemory veritabanıyla, kimlik doğrulama da test kimliğiyle değiştirilir.", file: "ECommerceApi.Tests/IntegrationTests/CustomWebApplicationFactory.cs", language: "csharp", code: String.raw`/*
 Integration testlere geçiyoruz.
 Bu sefer hiçbir şeyi mock'lamayacağız; API'yi gerçekten ayağa kaldıracağız.
 
@@ -1310,7 +1310,7 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
         });
     }
 }` },
-      { title: "Gerçek HTTP testlerini yaz", how: [{"text": "`ECommerceApi.Tests/IntegrationTests` klasöründe yeni bir `ProductApiTests.cs` dosyası oluştur ve içini boşalt."}, {"text": "Dosyanın en üstüne şu `using` satırlarını ve namespace'i yaz:", "code": "using System.Net;\nusing System.Net.Http.Json;\nusing ECommerceApi.DTOs;\nusing FluentAssertions;\n\nnamespace ECommerceApi.Tests.IntegrationTests;"}, {"text": "Altına aşağıdaki `ProductApiTests` sınıfının tamamını yapıştır (constructor ve altı test dahil)."}, {"text": "Çalıştır, 16 test yeşil olmalı:", "code": "dotnet test"}], why: "Routing, middleware, DI kayıtları ve veritabanı ancak uçtan uca çalıştırılınca birlikte doğrulanır.", file: "ECommerceApi.Tests/IntegrationTests/ProductApiTests.cs", language: "csharp", code: String.raw`/*
+      { title: "Gerçek HTTP testlerini yaz", how: [{"text": "Base'de `IntegrationTests/ProductApiTests.cs` hazır: using'ler, `IClassFixture` ve `HttpClient` constructor'ı yazılı."}, {"text": "`// TODO [S08 - Adım 8a]` yorumunun yerine iki okuma testini, `8b` yorumunun yerine dört yazma testini yaz."}, {"text": "Çalıştır, 16 test yeşil olmalı:", "code": "dotnet test"}], why: "Routing, middleware, DI kayıtları ve veritabanı ancak uçtan uca çalıştırılınca birlikte doğrulanır.", file: "ECommerceApi.Tests/IntegrationTests/ProductApiTests.cs", language: "csharp", code: String.raw`/*
 Şimdi factory'yi kullanarak gerçek HTTP testleri yazıyoruz.
 Dosyamız IntegrationTests/ProductApiTests.cs.
 
@@ -1582,7 +1582,7 @@ dotnet test --collect:"XPlat Code Coverage"` }
     ],
         checklist: ["Serilog ve OpenTelemetry paketlerini ekle.", "Yapılandırılmış log ayarlarını konfigürasyonda tanımla.", "Korelasyon kimliği middleware'ini oluştur ve işlem hattının başına ekle.", "Uygulamaya özel metrikleri tanımlayan AppTelemetry sınıfını oluştur.", "Tanılama endpoint'ini ekle.", "Prometheus metriklerini ve iz ölçümlerini bağla.", "Log, korelasyon başlığı, /metrics ve tanılama çıktılarını doğrula."],
     code: [
-    { title: "Korelasyon kimliği middleware'ini ekle", why: "İstek kimliği HttpContext, yanıt ve Serilog bağlamında aynı değeri taşır.", file: "ECommerceApi/Observability/CorrelationIdMiddleware.cs", language: "csharp", code: String.raw`using Serilog.Context;
+    { title: "Korelasyon kimliği middleware'ini ekle", how: [{"text": "Base'de: sınıf, `HeaderName`, constructor ve `UseCorrelationId` hazır. `// TODO [S09 - Adım 1a]` (`InvokeAsync`) ve `1b` (`GetOrCreateCorrelationId`) yorumlarının yerine yaz."}], why: "İstek kimliği HttpContext, yanıt ve Serilog bağlamında aynı değeri taşır.", file: "ECommerceApi/Observability/CorrelationIdMiddleware.cs", language: "csharp", code: String.raw`using Serilog.Context;
 
 namespace ECommerceApi.Observability;
 
@@ -1611,7 +1611,7 @@ public class CorrelationIdMiddleware
             await _next(context);
     }
 }` },
-    { title: "Özel metrikleri tanımla", why: "Framework metriklerine ek olarak bootcamp'e özgü olayları ve süreleri ölçeriz.", file: "ECommerceApi/Observability/AppTelemetry.cs", language: "csharp", code: String.raw`using System.Diagnostics;
+    { title: "Özel metrikleri tanımla", how: [{"text": "Base'de: sabitler ve `ActivitySource` hazır. `// TODO [S09 - Adım 2a]` (Meter, Counter, Histogram) ve `2b` (kayıt metotları) yorumlarının yerine yaz."}], why: "Framework metriklerine ek olarak bootcamp'e özgü olayları ve süreleri ölçeriz.", file: "ECommerceApi/Observability/AppTelemetry.cs", language: "csharp", code: String.raw`using System.Diagnostics;
 using System.Diagnostics.Metrics;
 
 namespace ECommerceApi.Observability;
@@ -1635,7 +1635,7 @@ public class AppTelemetry
     public void PingHandled() => _diagnosticsPings.Add(1);
     public void RecordWork(double milliseconds) => _workDuration.Record(milliseconds);
 }` },
-    { title: "Metrik ve iz üreten endpoint yaz", why: "Tek çağrıda log, histogram ve özel span davranışını gözlemleriz.", file: "ECommerceApi/Controllers/DiagnosticsController.cs", language: "csharp", code: String.raw`[HttpGet("work")]
+    { title: "Metrik ve iz üreten endpoint yaz", how: [{"text": "Base'de: `Ping` ve `LogLevels` hazır. Canlı kısım `// TODO [S09 - Adım 3]`: `DoWork` endpoint'i."}], why: "Tek çağrıda log, histogram ve özel span davranışını gözlemleriz.", file: "ECommerceApi/Controllers/DiagnosticsController.cs", language: "csharp", code: String.raw`[HttpGet("work")]
 public async Task<IActionResult> DoWork([FromQuery] int ms = 250)
 {
     using var activity = AppTelemetry.ActivitySource.StartActivity("SimulatedWork");
@@ -1650,7 +1650,7 @@ public async Task<IActionResult> DoWork([FromQuery] int ms = 250)
     activity?.SetTag("work.actual_ms", stopwatch.ElapsedMilliseconds);
     return Ok(new { elapsedMs = stopwatch.ElapsedMilliseconds, traceId = activity?.TraceId });
 }` },
-    { title: "Serilog ve OpenTelemetry'yi bağla", why: "Log, metrik ve iz sağlayıcılarını uygulama başlarken tek yerde yapılandırırız.", file: "ECommerceApi/Program.cs", language: "csharp", code: String.raw`builder.Host.UseSerilog((context, services, config) => config
+    { title: "Serilog ve OpenTelemetry'yi bağla", how: [{"text": "Base'de: paketler, `appsettings` Serilog bölümü, bootstrap logger ve health check'ler hazır. `// TODO [S09 - Adım 4a]` (`UseSerilog`), `4b` (OpenTelemetry), `4c` (pipeline) ve `4d` (`/metrics`) yorumlarının yerine yaz."}], why: "Log, metrik ve iz sağlayıcılarını uygulama başlarken tek yerde yapılandırırız.", file: "ECommerceApi/Program.cs", language: "csharp", code: String.raw`builder.Host.UseSerilog((context, services, config) => config
     .ReadFrom.Configuration(context.Configuration)
     .ReadFrom.Services(services)
     .Enrich.FromLogContext());
@@ -1685,7 +1685,7 @@ app.MapPrometheusScrapingEndpoint();` }
     ],
         checklist: ["Derleme çıktısını sadeleştiren .dockerignore dosyasını oluştur.", "SDK ve çalışma zamanı aşamalarını ayıran Dockerfile'ı yaz.", "API imajını derleyip Kestrel üzerinde çalıştır.", "Serilog loglarını Seq'e gönderecek ayarları ekle.", "API ve Seq'i docker-compose.yml ile birlikte ayağa kaldır.", "Kalıcı veriler ve loglar için birimler tanımla.", "Geri yükle → derle → test et → imaj oluştur adımlarını işlem hattına ekle.", "API, Swagger, Seq ve işlem hattı sonuçlarını doğrula."],
     code: [
-    { title: "Çok aşamalı imaj oluştur", why: "SDK yalnızca derleme aşamasında kalır; son imaj daha küçük olur ve daha az saldırı yüzeyi barındırır.", file: "Dockerfile", language: "dockerfile", code: String.raw`FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+    { title: "Çok aşamalı imaj oluştur", how: [{"text": "Base'de: `.dockerignore` hazır, `Dockerfile` sadece yorumlardan oluşuyor. `# TODO [S10 - Adım 1a]` (build aşaması) ve `1b` (runtime aşaması) yorumlarının altına yaz."}], why: "SDK yalnızca derleme aşamasında kalır; son imaj daha küçük olur ve daha az saldırı yüzeyi barındırır.", file: "Dockerfile", language: "dockerfile", code: String.raw`FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 COPY ECommerceApi/ECommerceApi.csproj ECommerceApi/
 RUN dotnet restore ECommerceApi/ECommerceApi.csproj
@@ -1699,7 +1699,7 @@ COPY --from=build /app/publish .
 ENV ASPNETCORE_URLS=http://+:8080
 EXPOSE 8080
 ENTRYPOINT ["dotnet", "ECommerceApi.dll"]` },
-    { title: "API ve Seq Compose ortamını kur", why: "Uygulamayı, log sunucusunu, ağı ve kalıcı birimleri tek komutla yönetiriz.", file: "docker-compose.yml", language: "yaml", code: String.raw`services:
+    { title: "API ve Seq Compose ortamını kur", how: [{"text": "Base'de: Seq paketi ve `appsettings` Seq ayarı hazır, `docker-compose.yml` iskelet. `# TODO [S10 - Adım 2a]` (api), `2b` (seq) ve `2c` (volume'ler) yorumlarına göre yaz; servisleri yazarken `services: {}` içindeki `{}`'yi sil."}], why: "Uygulamayı, log sunucusunu, ağı ve kalıcı birimleri tek komutla yönetiriz.", file: "docker-compose.yml", language: "yaml", code: String.raw`services:
   api:
     build:
       context: .
@@ -1710,6 +1710,7 @@ ENTRYPOINT ["dotnet", "ECommerceApi.dll"]` },
       - ASPNETCORE_ENVIRONMENT=Production
       - ConnectionStrings__DefaultConnection=Data Source=/app/data/bootcamp.db
       - Serilog__WriteTo__2__Args__serverUrl=http://seq:5341
+      - JwtSettings__SecretKey=${"$"}{JWT_SECRET_KEY}
     depends_on:
       - seq
     volumes:
@@ -1729,7 +1730,7 @@ volumes:
   api-data:
   api-logs:
   seq-data:` },
-    { title: "Derleme ve test işlem hattını ekle", why: "Her push işlemini temiz bir .NET SDK ortamında doğrular, main dalı için imaj üretimini ayrı bir kalite kontrolü olarak çalıştırırız.", file: "bitbucket-pipelines.yml", language: "yaml", code: String.raw`image: mcr.microsoft.com/dotnet/sdk:8.0
+    { title: "Derleme ve test işlem hattını ekle", how: [{"text": "Base'de: dosya geçerli bir iskelet (tek `echo` adımı), push'ta pipeline kırmızıya düşmez. `# TODO [S10 - Adım 3a]` (restore, build, test) ve `3b` (`main` için Docker build) yorumlarına göre yaz."}], why: "Her push işlemini temiz bir .NET SDK ortamında doğrular, main dalı için imaj üretimini ayrı bir kalite kontrolü olarak çalıştırırız.", file: "bitbucket-pipelines.yml", language: "yaml", code: String.raw`image: mcr.microsoft.com/dotnet/sdk:8.0
 
 pipelines:
   default:
@@ -1755,10 +1756,13 @@ pipelines:
             - docker
           script:
             - docker build -t ecommerceapi:$BITBUCKET_COMMIT .` },
-    { title: "Container ortamını doğrula", why: "İmajı ve çoklu servis akışını yerelde üretime benzer bir ortamda test ederiz.", file: "Terminal", language: "bash", code: String.raw`docker build -t ecommerceapi:local .
+    { title: "Container ortamını doğrula", how: [{"text": "Canlı çalıştırılır. Uygulama JWT secret'sız açılmaz (Session 5): `docker run`'a `JwtSettings__SecretKey`, compose'a `JWT_SECRET_KEY` ortam değişkeni verilir."}], why: "İmajı ve çoklu servis akışını yerelde üretime benzer bir ortamda test ederiz.", file: "Terminal", language: "bash", code: String.raw`docker build -t ecommerceapi:local .
 docker run --rm -p 8080:8080 \
-  -e ASPNETCORE_ENVIRONMENT=Development ecommerceapi:local
+  -e ASPNETCORE_ENVIRONMENT=Development \
+  -e JwtSettings__SecretKey='BootcampLocalDevSecretKey_Min32Characters!' \
+  ecommerceapi:local
 
+export JWT_SECRET_KEY='BootcampLocalDevSecretKey_Min32Characters!'
 docker compose up --build
 # API: http://localhost:8080/swagger
 # Seq: http://localhost:5341` }
